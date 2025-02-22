@@ -1,4 +1,3 @@
-
 test_that("autoplot - classification", {
 	skip_if_not_installed("modeldata")
 	skip_if_not_installed("recipes")
@@ -31,7 +30,11 @@ test_that("autoplot - classification", {
 	expect_s3_class(p1, "ggplot")
 	expect_equal(
 		p1$labels,
-		list(y = NULL, x = "Permutation Importance Score", xintercept = "xintercept")
+		list(
+			y = NULL,
+			x = "Permutation Importance Score",
+			xintercept = "xintercept"
+		)
 	)
 	expect_equal(names(p1$mapping), "y")
 	expect_equal(
@@ -58,8 +61,13 @@ test_that("autoplot - classification", {
 	)
 	expect_equal(
 		p2$labels,
-		list(y = NULL, x = "Permutation Importance Score", xintercept = "xintercept",
-				 xmin = "mean - 1.96 * std_err", xmax = "mean + 1.96 * std_err")
+		list(
+			y = NULL,
+			x = "Permutation Importance Score",
+			xintercept = "xintercept",
+			xmin = "mean - std_errs * std_err",
+			xmax = "mean + std_errs * std_err"
+		)
 	)
 
 	expect_equal(length(p2$layers), 3)
@@ -81,11 +89,11 @@ test_that("autoplot - classification", {
 	expect_equal(names(p2$layers[[3]]$mapping), c("xmin", "xmax"))
 	expect_equal(
 		rlang::quo_get_expr(p2$layers[[3]]$mapping$xmin) %>% as.character(),
-		c("-", "mean", "1.96 * std_err")
+		c("-", "mean", "std_errs * std_err")
 	)
 	expect_equal(
 		rlang::quo_get_expr(p2$layers[[3]]$mapping$xmax) %>% as.character(),
-		c("+", "mean", "1.96 * std_err")
+		c("+", "mean", "std_errs * std_err")
 	)
 
 	###
@@ -105,7 +113,11 @@ test_that("autoplot - classification", {
 	expect_s3_class(p3, "ggplot")
 	expect_equal(
 		p3$labels,
-		list(y = NULL, x = "Permutation Importance Score", xintercept = "xintercept")
+		list(
+			y = NULL,
+			x = "Permutation Importance Score",
+			xintercept = "xintercept"
+		)
 	)
 	expect_equal(length(p3$layers), 2)
 	expect_equal(names(p3$mapping), "y")

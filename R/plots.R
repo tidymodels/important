@@ -13,6 +13,7 @@
 #' overall signal-to-noise ration (i.e., mean divided by standard error).
 #' Alternatively, `"difference"` shows the mean difference value with standard
 #' error bounds.
+#' @param std_errs The number of standard errors to plot (when `type = "difference"`).
 #' @param ... Not used.
 #' @return A `ggplot2` object.
 #' @examplesIf !is_cran_check()
@@ -49,12 +50,19 @@
 #' 	autoplot(imp_derv, metric = "brier_class", type = "difference")
 #' }
 #' @export
-autoplot.importance_perm <- function(object, top = Inf, metric = NULL,
-                                     eval_time = NULL, type = "importance", ...) {
+autoplot.importance_perm <- function(
+  object,
+  top = Inf,
+  metric = NULL,
+  eval_time = NULL,
+  type = "importance",
+  std_errs = qnorm(0.95),
+  ...
+) {
   type <- rlang::arg_match(type, values = c("importance", "difference"))
 
   if (!is.null(metric)) {
-    object <- object[object$.metric %in% metric,]
+    object <- object[object$.metric %in% metric, ]
     if (nrow(object) == 0) {
       cli::cli_abort("No data left when filtering over {.val {metric}}.")
     }
@@ -71,30 +79,38 @@ autoplot.importance_perm <- function(object, top = Inf, metric = NULL,
   num_pred <- vctrs::vec_unique_count(object$predictor)
   top <- min(top, num_pred)
   overall_rank <-
-  	overall_rank |>
-  	dplyr::slice_min(ranking, n = top) |>
-  	dplyr::select(predictor)
+    overall_rank |>
+    dplyr::slice_min(ranking, n = top) |>
+    dplyr::select(predictor)
 
   object <- dplyr::inner_join(object, overall_rank, by = "predictor")
-  object$predictor <- factor(object$predictor, levels = rev(overall_rank$predictor))
+  object$predictor <- factor(
+    object$predictor,
+    levels = rev(overall_rank$predictor)
+  )
 
   p <-
     ggplot2::ggplot(object, ggplot2::aes(y = predictor)) +
     ggplot2::geom_vline(xintercept = 0, col = "red", lty = 2) +
     ggplot2::labs(y = NULL, x = "Permutation Importance Score")
   if (length(unique(object$.metric)) > 1) {
-    p <- p + ggplot2::facet_wrap(~ .metric)
+    p <- p + ggplot2::facet_wrap(~.metric)
   }
   if (type == "importance") {
     p <- p + ggplot2::geom_point(ggplot2::aes(x = importance))
   } else if (type == "difference") {
     # TODO add alpha level
-  	num_rows <- vctrs::vec_unique_count(object$predictor)
+    num_rows <- vctrs::vec_unique_count(object$predictor)
     p <- p +
       ggplot2::geom_point(ggplot2::aes(x = mean)) +
       ggplot2::geom_errorbar(
-        ggplot2::aes(xmin = mean - 1.96 * std_err, xmax = mean + 1.96 * std_err),
-        width = num_rows / 50, alpha = 1 / 2)
+        ggplot2::aes(
+          xmin = mean - std_errs * std_err,
+          xmax = mean + std_errs * std_err
+        ),
+        width = num_rows / 50,
+        alpha = 1 / 2
+      )
   }
   p
 }

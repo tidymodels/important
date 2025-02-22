@@ -6,7 +6,7 @@
 \alias{important-package}
 \title{important: Tools for Supervised Feature Selection}
 \description{
-Low-level data and interfaces to choose important predictors for predicting an outcome.
+Interfaces for choosing important predictors in supervised regression, classification, and censored regression models.
 }
 \author{
 \strong{Maintainer}: Max Kuhn \email{max@posit.co} (\href{https://orcid.org/0000-0003-2402-136X}{ORCID})
