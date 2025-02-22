@@ -10,6 +10,7 @@
   metric = NULL,
   eval_time = NULL,
   type = "importance",
+  std_errs = qnorm(0.95),
   ...
 )
 }
@@ -32,6 +33,8 @@ which the survival probability is estimated.}
 overall signal-to-noise ration (i.e., mean divided by standard error).
 Alternatively, \code{"difference"} shows the mean difference value with standard
 error bounds.}
+
+\item{std_errs}{The number of standard errors to plot (when \code{type = "difference"}).}
 
 \item{...}{Not used.}
 }
