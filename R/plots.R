@@ -99,7 +99,6 @@ autoplot.importance_perm <- function(
   if (type == "importance") {
     p <- p + ggplot2::geom_point(ggplot2::aes(x = importance))
   } else if (type == "difference") {
-    # TODO add alpha level
     num_rows <- vctrs::vec_unique_count(object$predictor)
     p <- p +
       ggplot2::geom_point(ggplot2::aes(x = mean)) +
