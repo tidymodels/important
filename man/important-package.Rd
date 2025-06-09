@@ -13,7 +13,7 @@ Interfaces for choosing important predictors in supervised regression, classific
 
 Other contributors:
 \itemize{
-  \item Posit Software PBC [copyright holder]
+  \item Posit Software, PBC (03wc8by49) [copyright holder, funder]
 }
 
 }
