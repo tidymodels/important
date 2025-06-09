@@ -43,7 +43,14 @@
   <a href="reference/index.html">Reference</a>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/tidymodels/important/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -96,10 +103,10 @@
 <p>The model uses a recipe with spline terms for the hour and distances. The nonlinear trend over the time of order changes on the day, so we added interactions between these two sets of terms. Finally, a simple linear regression model is used for estimation:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">delivery_rec</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="fu">recipe</span><span class="op">(</span><span class="va">time_to_delivery</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">delivery_train</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">step_dummy</span><span class="op">(</span><span class="fu">all_factor_predictors</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">step_zv</span><span class="op">(</span><span class="fu">all_predictors</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">step_spline_natural</span><span class="op">(</span><span class="va">hour</span>, <span class="va">distance</span>, deg_free <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
+<span>  <span class="fu">recipe</span><span class="op">(</span><span class="va">time_to_delivery</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">delivery_train</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">step_dummy</span><span class="op">(</span><span class="fu">all_factor_predictors</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">step_zv</span><span class="op">(</span><span class="fu">all_predictors</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">step_spline_natural</span><span class="op">(</span><span class="va">hour</span>, <span class="va">distance</span>, deg_free <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">step_interact</span><span class="op">(</span><span class="op">~</span> <span class="fu">starts_with</span><span class="op">(</span><span class="st">"hour_"</span><span class="op">)</span><span class="op">:</span><span class="fu">starts_with</span><span class="op">(</span><span class="st">"day_"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">lm_wflow</span> <span class="op">&lt;-</span> <span class="fu">workflow</span><span class="op">(</span><span class="va">delivery_rec</span>, <span class="fu">linear_reg</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
@@ -132,8 +139,8 @@
 <span><span class="co">#&gt; # ℹ 216 more rows</span></span></code></pre></div>
 <p>Using mean absolute error as the metric of interest, the top 5 features are:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">lm_deriv_imp</span> <span class="op">%&gt;%</span> </span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">.metric</span> <span class="op">==</span> <span class="st">"mae"</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
+<code class="sourceCode R"><span><span class="va">lm_deriv_imp</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">.metric</span> <span class="op">==</span> <span class="st">"mae"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu">slice_max</span><span class="op">(</span><span class="va">importance</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # A tibble: 5 × 6</span></span>
 <span><span class="co">#&gt;   .metric predictor       n  mean std_err importance</span></span>
@@ -165,8 +172,8 @@
 <span>    <span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Top five: </span></span>
-<span><span class="va">lm_orig_imp</span> <span class="op">%&gt;%</span> </span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">.metric</span> <span class="op">==</span> <span class="st">"mae"</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
+<span><span class="va">lm_orig_imp</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">.metric</span> <span class="op">==</span> <span class="st">"mae"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu">slice_max</span><span class="op">(</span><span class="va">importance</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # A tibble: 5 × 6</span></span>
 <span><span class="co">#&gt;   .metric predictor     n   mean std_err importance</span></span>
@@ -189,7 +196,15 @@
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
-    <div class="license">
+    <div class="links">
+<h2 data-toc-skip>Links</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/tidymodels/important/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/tidymodels/important/issues" class="external-link">Report a bug</a></li>
+</ul>
+</div>
+
+<div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li><a href="LICENSE.html">Full license</a></li>
@@ -215,7 +230,7 @@
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Max Kuhn <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-2402-136X" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
-<li><a href="authors.html">More about authors...</a></li>
+<li>Posit Software, PBC <br><small class="roles"> Copyright holder, funder </small>  <a href="https://ror.org/03wc8by49" class="external-link"><img src="https://raw.githubusercontent.com/ror-community/ror-logos/main/ror-icon-rgb.svg" class="ror" alt="ROR"></a> </li>
 </ul>
 </div>
 
@@ -223,7 +238,7 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://github.com/tidymodels/important/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/tidymodels/important/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
-<li><a href="https://app.codecov.io/gh/tidymodels/important?branch=main" class="external-link"><img src="https://codecov.io/gh/tidymodels/important/branch/main/graph/badge.svg" alt="Codecov test coverage"></a></li>
+<li><a href="https://app.codecov.io/gh/tidymodels/important" class="external-link"><img src="https://codecov.io/gh/tidymodels/important/graph/badge.svg" alt="Codecov test coverage"></a></li>
 </ul>
 </div>
 
@@ -233,7 +248,7 @@
 
       <footer><div class="copyright">
   <p></p>
-<p>Developed by Max Kuhn.</p>
+<p>Developed by Max Kuhn, Posit Software, PBC.</p>
 </div>
 
 <div class="pkgdown">
