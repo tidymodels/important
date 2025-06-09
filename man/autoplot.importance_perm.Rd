@@ -55,9 +55,9 @@ if (!rlang::is_installed(c("modeldata", "recipes", "workflows"))) {
 	data(ad_data, package = "modeldata")
 
 	ad_rec <-
-		recipe(Class ~ ., data = ad_data) \%>\%
-		step_pca(all_numeric_predictors(), -male, -age, num_comp = 5) \%>\%
-		step_dummy(all_factor_predictors()) \%>\%
+		recipe(Class ~ ., data = ad_data) |>
+		step_pca(all_numeric_predictors(), -male, -age, num_comp = 5) |>
+		step_dummy(all_factor_predictors()) |>
 		step_zv(all_predictors())
 
 	ad_wflow <- workflow(ad_rec, logistic_reg())

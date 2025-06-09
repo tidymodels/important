@@ -18,14 +18,23 @@ generics::required_pkgs
 generics::augment
 
 utils::globalVariables(
-  c(".estimate", ".metric", "baseline", "direction", "importance", "permuted",
-    "predictor", "ranking", "std_err")
+  c(
+    ".estimate",
+    ".metric",
+    "baseline",
+    "direction",
+    "importance",
+    "permuted",
+    "predictor",
+    "ranking",
+    "std_err"
+  )
 )
 ## usethis namespace: end
 NULL
 
 ## From workflows
 # nocov start
-has_postprocessor <- function (x) has_postprocessor_tailor(x)
+has_postprocessor <- function(x) has_postprocessor_tailor(x)
 has_postprocessor_tailor <- function(x) "tailor" %in% names(x$post$actions)
 # nocov end

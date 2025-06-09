@@ -7,7 +7,7 @@
 
 [![R-CMD-check](https://github.com/tidymodels/important/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/tidymodels/important/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
-coverage](https://codecov.io/gh/tidymodels/important/branch/main/graph/badge.svg)](https://app.codecov.io/gh/tidymodels/important?branch=main)
+coverage](https://codecov.io/gh/tidymodels/important/graph/badge.svg)](https://app.codecov.io/gh/tidymodels/important)
 <!-- badges: end -->
 
 The important package has a succinct interface for obtaining estimates
@@ -70,10 +70,10 @@ linear regression model is used for estimation:
 
 ``` r
 delivery_rec <- 
-  recipe(time_to_delivery ~ ., data = delivery_train) %>% 
-  step_dummy(all_factor_predictors()) %>% 
-  step_zv(all_predictors()) %>% 
-  step_spline_natural(hour, distance, deg_free = 10) %>% 
+  recipe(time_to_delivery ~ ., data = delivery_train) |> 
+  step_dummy(all_factor_predictors()) |> 
+  step_zv(all_predictors()) |> 
+  step_spline_natural(hour, distance, deg_free = 10) |> 
   step_interact(~ starts_with("hour_"):starts_with("day_"))
 
 lm_wflow <- workflow(delivery_rec, linear_reg())
@@ -115,8 +115,8 @@ Using mean absolute error as the metric of interest, the top 5 features
 are:
 
 ``` r
-lm_deriv_imp %>% 
-    filter(.metric == "mae") %>% 
+lm_deriv_imp |> 
+    filter(.metric == "mae") |> 
     slice_max(importance, n = 5)
 #> # A tibble: 5 × 6
 #>   .metric predictor       n  mean std_err importance
@@ -164,8 +164,8 @@ lm_orig_imp <-
     )
 
 # Top five: 
-lm_orig_imp %>% 
-    filter(.metric == "mae") %>% 
+lm_orig_imp |> 
+    filter(.metric == "mae") |> 
     slice_max(importance, n = 5)
 #> # A tibble: 5 × 6
 #>   .metric predictor     n   mean std_err importance
