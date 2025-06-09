@@ -78,10 +78,10 @@ The model uses a recipe with spline terms for the hour and distances. The nonlin
 ```{r}
 #| label: model
 delivery_rec <- 
-  recipe(time_to_delivery ~ ., data = delivery_train) %>% 
-  step_dummy(all_factor_predictors()) %>% 
-  step_zv(all_predictors()) %>% 
-  step_spline_natural(hour, distance, deg_free = 10) %>% 
+  recipe(time_to_delivery ~ ., data = delivery_train) |> 
+  step_dummy(all_factor_predictors()) |> 
+  step_zv(all_predictors()) |> 
+  step_spline_natural(hour, distance, deg_free = 10) |> 
   step_interact(~ starts_with("hour_"):starts_with("day_"))
 
 lm_wflow <- workflow(delivery_rec, linear_reg())
@@ -106,8 +106,8 @@ lm_deriv_imp
 Using mean absolute error as the metric of interest, the top 5 features are: 
 
 ```{r}
-lm_deriv_imp %>% 
-	filter(.metric == "mae") %>% 
+lm_deriv_imp |> 
+	filter(.metric == "mae") |> 
 	slice_max(importance, n = 5)
 ```
 
@@ -141,8 +141,8 @@ lm_orig_imp <-
 	)
 
 # Top five: 
-lm_orig_imp %>% 
-	filter(.metric == "mae") %>% 
+lm_orig_imp |> 
+	filter(.metric == "mae") |> 
 	slice_max(importance, n = 5)
 ```
 

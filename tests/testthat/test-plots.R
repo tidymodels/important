@@ -7,12 +7,12 @@ test_that("autoplot - classification", {
   data(ad_data, package = "modeldata")
 
   ad_rec <-
-    recipe(Class ~ ., data = ad_data) %>%
-    step_pca(all_numeric_predictors(), -male, -age, num_comp = 20) %>%
+    recipe(Class ~ ., data = ad_data) |>
+    step_pca(all_numeric_predictors(), -male, -age, num_comp = 20) |>
     step_dummy(all_factor_predictors())
 
   cls_r_fit <-
-    workflow(ad_rec, logistic_reg()) %>%
+    workflow(ad_rec, logistic_reg()) |>
     fit(data = ad_data)
 
   set.seed(1)
@@ -38,18 +38,18 @@ test_that("autoplot - classification", {
   )
   expect_equal(names(p1$mapping), "y")
   expect_equal(
-    rlang::quo_get_expr(p1$mapping$y) %>% as.character(),
+    rlang::quo_get_expr(p1$mapping$y) |> as.character(),
     "predictor"
   )
   expect_equal(length(p1$layers), 2)
   expect_equal(names(p1$layers[[1]]$mapping), "xintercept")
   expect_equal(
-    rlang::quo_get_expr(p1$layers[[1]]$mapping$xintercept) %>% as.character(),
+    rlang::quo_get_expr(p1$layers[[1]]$mapping$xintercept) |> as.character(),
     "xintercept"
   )
   expect_equal(names(p1$layers[[2]]$mapping), "x")
   expect_equal(
-    rlang::quo_get_expr(p1$layers[[2]]$mapping$x) %>% as.character(),
+    rlang::quo_get_expr(p1$layers[[2]]$mapping$x) |> as.character(),
     "importance"
   )
 
@@ -73,26 +73,26 @@ test_that("autoplot - classification", {
   expect_equal(length(p2$layers), 3)
   expect_equal(names(p2$mapping), "y")
   expect_equal(
-    rlang::quo_get_expr(p2$mapping$y) %>% as.character(),
+    rlang::quo_get_expr(p2$mapping$y) |> as.character(),
     "predictor"
   )
   expect_equal(names(p2$layers[[1]]$mapping), "xintercept")
   expect_equal(
-    rlang::quo_get_expr(p2$layers[[1]]$mapping$xintercept) %>% as.character(),
+    rlang::quo_get_expr(p2$layers[[1]]$mapping$xintercept) |> as.character(),
     "xintercept"
   )
   expect_equal(names(p2$layers[[2]]$mapping), "x")
   expect_equal(
-    rlang::quo_get_expr(p2$layers[[2]]$mapping$x) %>% as.character(),
+    rlang::quo_get_expr(p2$layers[[2]]$mapping$x) |> as.character(),
     "mean"
   )
   expect_equal(names(p2$layers[[3]]$mapping), c("xmin", "xmax"))
   expect_equal(
-    rlang::quo_get_expr(p2$layers[[3]]$mapping$xmin) %>% as.character(),
+    rlang::quo_get_expr(p2$layers[[3]]$mapping$xmin) |> as.character(),
     c("-", "mean", "std_errs * std_err")
   )
   expect_equal(
-    rlang::quo_get_expr(p2$layers[[3]]$mapping$xmax) %>% as.character(),
+    rlang::quo_get_expr(p2$layers[[3]]$mapping$xmax) |> as.character(),
     c("+", "mean", "std_errs * std_err")
   )
 
@@ -122,17 +122,17 @@ test_that("autoplot - classification", {
   expect_equal(length(p3$layers), 2)
   expect_equal(names(p3$mapping), "y")
   expect_equal(
-    rlang::quo_get_expr(p3$mapping$y) %>% as.character(),
+    rlang::quo_get_expr(p3$mapping$y) |> as.character(),
     "predictor"
   )
   expect_equal(names(p3$layers[[1]]$mapping), "xintercept")
   expect_equal(
-    rlang::quo_get_expr(p3$layers[[1]]$mapping$xintercept) %>% as.character(),
+    rlang::quo_get_expr(p3$layers[[1]]$mapping$xintercept) |> as.character(),
     "xintercept"
   )
   expect_equal(names(p3$layers[[2]]$mapping), "x")
   expect_equal(
-    rlang::quo_get_expr(p3$layers[[2]]$mapping$x) %>% as.character(),
+    rlang::quo_get_expr(p3$layers[[2]]$mapping$x) |> as.character(),
     "importance"
   )
 })

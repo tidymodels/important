@@ -99,7 +99,7 @@ test_that("extracting derived data - formula", {
     data = ad_data_small,
     type = "predictors"
   )
-  expect_equal(dat[0, ], ad_ptype %>% dplyr::select(-Class))
+  expect_equal(dat[0, ], ad_ptype |> dplyr::select(-Class))
   expect_equal(nrow(dat), nrow(ad_data_small))
 
   ###
@@ -109,7 +109,7 @@ test_that("extracting derived data - formula", {
     data = ad_data_small,
     type = "outcomes"
   )
-  expect_equal(dat[0, ], ad_ptype %>% dplyr::select(Class))
+  expect_equal(dat[0, ], ad_ptype |> dplyr::select(Class))
   expect_equal(nrow(dat), nrow(ad_data_small))
 
   ###
@@ -159,7 +159,7 @@ test_that("extracting derived data - recipe", {
     data = ad_data_small,
     type = "predictors"
   )
-  expect_equal(dat[0, ], ad_ptype %>% dplyr::select(-Class))
+  expect_equal(dat[0, ], ad_ptype |> dplyr::select(-Class))
   expect_equal(nrow(dat), nrow(ad_data_small))
 
   ###
@@ -169,7 +169,7 @@ test_that("extracting derived data - recipe", {
     data = ad_data_small,
     type = "outcomes"
   )
-  expect_equal(dat[0, ], ad_ptype %>% dplyr::select(Class))
+  expect_equal(dat[0, ], ad_ptype |> dplyr::select(Class))
   expect_equal(nrow(dat), nrow(ad_data_small))
 })
 
@@ -205,7 +205,7 @@ test_that("extracting derived data - selectors", {
     data = ad_data_small,
     type = "predictors"
   )
-  expect_equal(dat[0, ], ad_ptype %>% dplyr::select(-Class))
+  expect_equal(dat[0, ], ad_ptype |> dplyr::select(-Class))
   expect_equal(nrow(dat), nrow(ad_data_small))
 
   ###
@@ -215,7 +215,7 @@ test_that("extracting derived data - selectors", {
     data = ad_data_small,
     type = "outcomes"
   )
-  expect_equal(dat[0, ], ad_ptype %>% dplyr::select(Class))
+  expect_equal(dat[0, ], ad_ptype |> dplyr::select(Class))
   expect_equal(nrow(dat), nrow(ad_data_small))
 })
 
@@ -227,14 +227,14 @@ test_that("extracting original data - formula", {
   dat <- important:::extract_data_original(cls_f_fit, data = ad_data_small)
   expect_equal(
     dat,
-    ad_data_small %>%
+    ad_data_small |>
       dplyr::select(tau, p_tau, VEGF, MMP10, Genotype, male, Class)
   )
 
   ### TODO this is an issue
 
   reg_trans_fit <-
-    workflow(sqrt(uptake) ~ ., linear_reg()) %>%
+    workflow(sqrt(uptake) ~ ., linear_reg()) |>
     fit(data = CO2_ex)
 
   dat <- important:::extract_data_original(reg_trans_fit, data = CO2_ex)
@@ -255,7 +255,7 @@ test_that("extracting original data - recipe", {
   dat <- important:::extract_data_original(cls_r_fit, data = ad_data_small)
   expect_equal(
     dat,
-    ad_data_small %>%
+    ad_data_small |>
       dplyr::select(tau, p_tau, VEGF, MMP10, Genotype, male, Class)
   )
 })
@@ -266,7 +266,7 @@ test_that("extracting original data - selectors", {
   dat <- important:::extract_data_original(cls_v_fit, data = ad_data_small)
   expect_equal(
     dat,
-    ad_data_small %>%
+    ad_data_small |>
       dplyr::select(tau, p_tau, VEGF, MMP10, Genotype, male, Class)
   )
 })

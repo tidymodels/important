@@ -20,8 +20,8 @@ test_that("prediction api - derived predictors, regression", {
   skip_if_not_installed("recipes")
 
   derived_predictors <-
-    reg_r_fit %>%
-    extract_recipe() %>%
+    reg_r_fit |>
+    extract_recipe() |>
     bake(head(CO2_ex), all_predictors())
 
   predictions <- important:::predictions(
@@ -66,7 +66,7 @@ test_that("prediction api - original predictors, classification", {
       male = numeric(0)
     )
 
-  predictors <- ad_data_small %>% select(-Class)
+  predictors <- ad_data_small |> select(-Class)
   predictions <- important:::predictions(
     cls_r_fit,
     predictors,
@@ -103,8 +103,8 @@ test_that("prediction api - derived predictors, classification", {
     )
 
   derived_predictors <-
-    cls_r_fit %>%
-    extract_recipe() %>%
+    cls_r_fit |>
+    extract_recipe() |>
     bake(head(ad_data_small), all_predictors())
 
   predictions <- important:::predictions(
@@ -170,9 +170,9 @@ test_that("prediction api - derived predictors, censored regression", {
     )
 
   derived_predictors <-
-    srv_fit %>%
-    extract_preprocessor() %>%
-    model.frame(data = head(time_to_million_small)) %>%
+    srv_fit |>
+    extract_preprocessor() |>
+    model.frame(data = head(time_to_million_small)) |>
     dplyr::select(-event_time)
 
   predictions <- important:::predictions(
@@ -266,8 +266,8 @@ test_that("compute metrics - derived predictors, regression", {
     )
 
   derived_predictors <-
-    reg_r_fit %>%
-    extract_recipe() %>%
+    reg_r_fit |>
+    extract_recipe() |>
     bake(CO2_ex)
 
   set.seed(1)
@@ -405,8 +405,8 @@ test_that("compute metrics - derived predictors, classification", {
     )
 
   derived_predictors <-
-    cls_r_fit %>%
-    extract_recipe() %>%
+    cls_r_fit |>
+    extract_recipe() |>
     bake(ad_data_small)
 
   set.seed(1)
@@ -581,8 +581,8 @@ test_that("compute metrics - derived predictors, censored regression", {
   )
 
   derived_predictors <-
-    srv_fit %>%
-    extract_preprocessor() %>%
+    srv_fit |>
+    extract_preprocessor() |>
     model.frame(data = time_to_million_small)
 
   set.seed(1)

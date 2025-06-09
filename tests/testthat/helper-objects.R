@@ -9,16 +9,16 @@ suppressPackageStartupMessages(library(yardstick)) # imported by tune
 # ------------------------------------------------------------------------------
 # regression examples
 
-CO2_ex <- CO2 %>% dplyr::select(-Plant, -Treatment)
+CO2_ex <- CO2 |> dplyr::select(-Plant, -Treatment)
 
-co2_rec <- recipe(uptake ~ ., data = CO2_ex) %>%
+co2_rec <- recipe(uptake ~ ., data = CO2_ex) |>
   step_dummy(all_factor_predictors())
 
 reg_f_wflow <- workflow(uptake ~ ., linear_reg())
 reg_r_wflow <- workflow(co2_rec, linear_reg())
 reg_v_wflow <-
-  workflow() %>%
-  add_model(linear_reg()) %>%
+  workflow() |>
+  add_model(linear_reg()) |>
   add_variables(outcomes = uptake, predictors = c(everything()))
 reg_1d_wflow <- workflow(uptake ~ conc, linear_reg())
 
@@ -34,8 +34,8 @@ reg_mtr <- metric_set(rsq, mae)
 
 cls_f_wflow <- workflow(Class ~ ., logistic_reg())
 cls_v_wflow <-
-  workflow() %>%
-  add_model(logistic_reg()) %>%
+  workflow() |>
+  add_model(logistic_reg()) |>
   add_variables(outcomes = Class, predictors = c(everything()))
 cls_1d_wflow <- workflow(Class ~ tau, logistic_reg())
 
@@ -44,12 +44,12 @@ if (rlang::is_installed("modeldata")) {
   data(ad_data, package = "modeldata")
 
   ad_data_small <-
-    ad_data %>%
+    ad_data |>
     dplyr::select(Class, tau, p_tau, VEGF, MMP10, Genotype, male)
 
   ad_rec <-
-    recipe(Class ~ ., data = ad_data_small) %>%
-    step_pca(tau, p_tau, VEGF, MMP10, num_comp = 2) %>%
+    recipe(Class ~ ., data = ad_data_small) |>
+    step_pca(tau, p_tau, VEGF, MMP10, num_comp = 2) |>
     step_dummy(all_factor_predictors())
 
   cls_r_wflow <- workflow(ad_rec, logistic_reg())
@@ -70,9 +70,9 @@ if (rlang::is_installed("censored")) {
   data(time_to_million, package = "censored")
 
   time_to_million_small <-
-    time_to_million %>%
-    dplyr::select(time, event, year, runtime) %>%
-    dplyr::mutate(event_time = Surv(time, event), .keep = "unused") %>%
+    time_to_million |>
+    dplyr::select(time, event, year, runtime) |>
+    dplyr::mutate(event_time = Surv(time, event), .keep = "unused") |>
     dplyr::slice(1:150)
 
   srv_wflow <- workflow(event_time ~ ., survival_reg())
