@@ -10,7 +10,7 @@
   metric = NULL,
   eval_time = NULL,
   type = "importance",
-  std_errs = qnorm(0.95),
+  std_errs = stats::qnorm(0.95),
   ...
 )
 }
