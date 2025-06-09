@@ -9,6 +9,7 @@ Authors@R: c(
 Description: Interfaces for choosing important predictors in supervised
     regression, classification, and censored regression models.
 License: MIT + file LICENSE
+Depends: R (>= 4.1.0) 
 Imports: 
     cli,
     dplyr,
