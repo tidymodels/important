@@ -2,8 +2,8 @@ suppressPackageStartupMessages(library(workflows))
 suppressPackageStartupMessages(library(tune))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(purrr))
-suppressPackageStartupMessages(library(recipes))   # imported by tune
-suppressPackageStartupMessages(library(parsnip))   # imported by tune
+suppressPackageStartupMessages(library(recipes)) # imported by tune
+suppressPackageStartupMessages(library(parsnip)) # imported by tune
 suppressPackageStartupMessages(library(yardstick)) # imported by tune
 
 # ------------------------------------------------------------------------------
@@ -48,8 +48,8 @@ if (rlang::is_installed("modeldata")) {
     dplyr::select(Class, tau, p_tau, VEGF, MMP10, Genotype, male)
 
   ad_rec <-
-  	recipe(Class ~ ., data = ad_data_small) %>%
-  	step_pca(tau, p_tau, VEGF, MMP10, num_comp = 2) %>%
+    recipe(Class ~ ., data = ad_data_small) %>%
+    step_pca(tau, p_tau, VEGF, MMP10, num_comp = 2) %>%
     step_dummy(all_factor_predictors())
 
   cls_r_wflow <- workflow(ad_rec, logistic_reg())
@@ -77,8 +77,7 @@ if (rlang::is_installed("censored")) {
 
   srv_wflow <- workflow(event_time ~ ., survival_reg())
   srv_fit <- fit(srv_wflow, time_to_million_small)
-  srv_times <- (1:4)/4
+  srv_times <- (1:4) / 4
 }
 
 srv_mtr <- metric_set(concordance_survival, roc_auc_survival)
-
