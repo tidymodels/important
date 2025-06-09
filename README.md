@@ -7,7 +7,7 @@
 
 [![R-CMD-check](https://github.com/tidymodels/important/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/tidymodels/important/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
-coverage](https://codecov.io/gh/tidymodels/important/branch/main/graph/badge.svg)](https://app.codecov.io/gh/tidymodels/important?branch=main)
+coverage](https://codecov.io/gh/tidymodels/important/graph/badge.svg)](https://app.codecov.io/gh/tidymodels/important)
 <!-- badges: end -->
 
 The important package has a succinct interface for obtaining estimates
