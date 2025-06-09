@@ -56,7 +56,7 @@ autoplot.importance_perm <- function(
   metric = NULL,
   eval_time = NULL,
   type = "importance",
-  std_errs = qnorm(0.95),
+  std_errs = stats::qnorm(0.95),
   ...
 ) {
   type <- rlang::arg_match(type, values = c("importance", "difference"))
