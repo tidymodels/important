@@ -695,7 +695,7 @@ test_that("compute metrics - future_wrapper - original predictors, regression", 
 
   set.seed(1)
   reg_bl <-
-    important:::future_wrapper(
+    important:::metric_wrapper(
       val_list,
       is_perm = FALSE,
       type = "original",
@@ -715,7 +715,7 @@ test_that("compute metrics - future_wrapper - original predictors, regression", 
 
   set.seed(1)
   conc_bl <-
-    important:::future_wrapper(
+    important:::metric_wrapper(
       val_list,
       is_perm = TRUE,
       type = "original",

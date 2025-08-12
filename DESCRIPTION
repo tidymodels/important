@@ -29,6 +29,7 @@ Imports:
     workflows
 Suggests: 
     censored,
+    future,
     future.apply,
     mirai,
     modeldata,

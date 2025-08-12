@@ -25,7 +25,7 @@ parallel_cl <- function(framework = "sequential", arg) {
 		)
 
 	if (framework == "future") {
-		rlang::check_installed("future")
+		rlang::check_installed(c("future", "future.lapply"))
 		iter_cl <- rlang::call_modify(
 			iter_cl,
 			!!!base_args,
