@@ -86,8 +86,16 @@
 #'   deriv_res
 #' }
 #' @export
-importance_perm <- function(wflow, data, metrics = NULL, type = "original", size = 500,
-                            times = 10, eval_time = NULL, event_level = "first") {
+importance_perm <- function(
+  wflow,
+  data,
+  metrics = NULL,
+  type = "original",
+  size = 500,
+  times = 10,
+  eval_time = NULL,
+  event_level = "first"
+) {
   if (!workflows::is_trained_workflow(wflow)) {
     cli::cli_abort("The workflow in {.arg wflow} should be trained.")
   }
@@ -111,7 +119,7 @@ importance_perm <- function(wflow, data, metrics = NULL, type = "original", size
   outcome_nm <- tune::outcome_names(wflow)
   extracted_data_nms <- extracted_data_nms[extracted_data_nms != outcome_nm]
   n <- nrow(extracted_data)
-  size <- min(floor(n * 0.8) , size)
+  size <- min(floor(n * 0.8), size)
 
   # ------------------------------------------------------------------------------
   # Prepare for permutations. A large `perm_combos` data frame is created to
@@ -122,7 +130,10 @@ importance_perm <- function(wflow, data, metrics = NULL, type = "original", size
 
   perm_combos <- tidyr::crossing(seed = seed_vals, column = extracted_data_nms)
   perm_combos <-
-    vctrs::vec_chop(perm_combos, indicies = as.list(vctrs::vec_seq_along(perm_combos)))
+    vctrs::vec_chop(
+      perm_combos,
+      indicies = as.list(vctrs::vec_seq_along(perm_combos))
+    )
 
   perm_bl <- dplyr::tibble(seed = seed_vals)
   perm_bl <-
@@ -149,7 +160,8 @@ importance_perm <- function(wflow, data, metrics = NULL, type = "original", size
       size = size,
       outcome = outcome_nm,
       eval_time = eval_time,
-      event_level = event_level) |>
+      event_level = event_level
+    ) |>
     purrr::list_rbind()
 
   # ------------------------------------------------------------------------------
@@ -173,7 +185,8 @@ importance_perm <- function(wflow, data, metrics = NULL, type = "original", size
       size = size,
       outcome = outcome_nm,
       eval_time = eval_time,
-      event_level = event_level) |>
+      event_level = event_level
+    ) |>
     purrr::list_rbind() |>
     dplyr::rename(baseline = .estimate) |>
     dplyr::select(-predictor)
@@ -196,7 +209,9 @@ importance_perm <- function(wflow, data, metrics = NULL, type = "original", size
       importance = dplyr::if_else(
         direction == "minimize",
         .estimate - baseline,
-        baseline - .estimate))
+        baseline - .estimate
+      )
+    )
 
   summarize_groups <- c(".metric", "predictor")
   if (has_eval_time) {
@@ -216,12 +231,26 @@ importance_perm <- function(wflow, data, metrics = NULL, type = "original", size
     ) |>
     dplyr::select(-sd, -permuted) |>
     dplyr::arrange(dplyr::desc(importance))
-  class(res) <- c("importance_perm", paste0(type, "_importance_perm"), class(res))
+  class(res) <- c(
+    "importance_perm",
+    paste0(type, "_importance_perm"),
+    class(res)
+  )
   res
 }
 
-future_wrapper <- function(vals, is_perm, type, wflow_fitted, dat, metrics, size,
-													 outcome, eval_time, event_level)  {
+future_wrapper <- function(
+  vals,
+  is_perm,
+  type,
+  wflow_fitted,
+  dat,
+  metrics,
+  size,
+  outcome,
+  eval_time,
+  event_level
+) {
   if (is_perm) {
     col <- vals$column[[1]]
   } else {
@@ -243,22 +272,34 @@ future_wrapper <- function(vals, is_perm, type, wflow_fitted, dat, metrics, size
   res
 }
 
-metric_iter <- function(column = NULL, seed, type, wflow_fitted, dat, metrics,
-												size, outcome, eval_time, event_level) {
+metric_iter <- function(
+  column = NULL,
+  seed,
+  type,
+  wflow_fitted,
+  dat,
+  metrics,
+  size,
+  outcome,
+  eval_time,
+  event_level
+) {
   info <- tune::metrics_info(metrics)
   set.seed(seed)
   n <- nrow(dat)
 
   if (!is.null(column)) {
-  	if (!any(names(dat) == column)) {
-  		cli::cli_abort("Column {column} was not in the data set. Existing columns
-  								  are: {names(dat)}.")
-  	}
+    if (!any(names(dat) == column)) {
+      cli::cli_abort(
+        "Column {column} was not in the data set. Existing columns
+  			 are: {names(dat)}."
+      )
+    }
     dat[[column]] <- sample(dat[[column]])
   }
   if (!is.null(size)) {
     ind <- sample.int(n, size)
-    dat <- dat[ind,]
+    dat <- dat[ind, ]
   }
 
   # ------------------------------------------------------------------------------
@@ -276,7 +317,8 @@ metric_iter <- function(column = NULL, seed, type, wflow_fitted, dat, metrics,
       param_names = NULL,
       outcome_name = outcome,
       event_level = event_level,
-      metrics_info = info)
+      metrics_info = info
+    )
 
   if (is.null(column)) {
     column <- ".baseline"
@@ -291,20 +333,18 @@ metric_iter <- function(column = NULL, seed, type, wflow_fitted, dat, metrics,
 # column when add_formula(log(y) ~ .) is used
 
 predictions <- function(wflow, new_data, type, eval_time) {
-	if (type == "original") {
-		preds <- augment(wflow, new_data = new_data, eval_time = eval_time)
-	} else {
-		preds <-
-			wflow |>
-			extract_fit_parsnip() |>
-			augment(new_data = new_data, eval_time = eval_time)
-		use_post <- has_postprocessor(wflow)
-		if (use_post) {
-			post_proc <- extract_postprocessor(wflow)
-			preds <- predict(post_proc, preds)
-		}
-	}
-	preds
+  if (type == "original") {
+    preds <- augment(wflow, new_data = new_data, eval_time = eval_time)
+  } else {
+    preds <-
+      wflow |>
+      extract_fit_parsnip() |>
+      augment(new_data = new_data, eval_time = eval_time)
+    use_post <- has_postprocessor(wflow)
+    if (use_post) {
+      post_proc <- extract_postprocessor(wflow)
+      preds <- predict(post_proc, preds)
+    }
+  }
+  preds
 }
-
-

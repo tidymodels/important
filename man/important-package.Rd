@@ -6,14 +6,14 @@
 \alias{important-package}
 \title{important: Tools for Supervised Feature Selection}
 \description{
-Interfaces for choosing important predictors in supervised regression, classification, and censored regression models.
+Interfaces for choosing important predictors in supervised regression, classification, and censored regression models. Permuted importance scores (Biecek and Burzykowski (2021) \doi{10.1201/9780429027192}) can be computed for 'tidymodels' model fits.
 }
 \author{
 \strong{Maintainer}: Max Kuhn \email{max@posit.co} (\href{https://orcid.org/0000-0003-2402-136X}{ORCID})
 
 Other contributors:
 \itemize{
-  \item Posit Software PBC [copyright holder]
+  \item Posit Software, PBC (03wc8by49) [copyright holder, funder]
 }
 
 }
