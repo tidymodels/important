@@ -87,12 +87,12 @@ For censored data, importance is computed for each evaluation time (when a
 dynamic metric is specified).
 }
 \examples{
-\dontshow{if (!is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-if (!rlang::is_installed(c("modeldata", "recipes", "workflows"))) {
+if (rlang::is_installed(c("modeldata", "recipes", "workflows", "parsnip"))) {
   library(modeldata)
   library(recipes)
   library(workflows)
   library(dplyr)
+  library(parsnip)
 
   set.seed(12)
   dat_tr <-
@@ -110,13 +110,12 @@ if (!rlang::is_installed(c("modeldata", "recipes", "workflows"))) {
 
   set.seed(39)
   orig_res <- importance_perm(lr_fit, data = dat_tr, type = "original",
-                              size = 100, times = 25)
+                              size = 100, times = 3)
   orig_res
 
   set.seed(39)
   deriv_res <- importance_perm(lr_fit, data = dat_tr, type = "derived",
-                               size = 100, times = 25)
+                               size = 100, times = 3)
   deriv_res
 }
-\dontshow{\}) # examplesIf}
 }
