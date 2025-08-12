@@ -17,7 +17,6 @@ Depends:
 Imports: 
     cli,
     dplyr,
-    future.apply,
     generics,
     ggplot2,
     hardhat (>= 1.4.0.9002),
@@ -30,14 +29,14 @@ Imports:
     workflows
 Suggests: 
     censored,
+    future.apply,
+    mirai,
     modeldata,
     parsnip,
     recipes,
     spelling,
     testthat (>= 3.0.0),
     yardstick
-Remotes:
-    tidymodels/hardhat
 Config/Needs/website: tidyverse/tidytemplate, tidymodels
 Config/testthat/edition: 3
 Config/usethis/last-upkeep: 2025-06-09

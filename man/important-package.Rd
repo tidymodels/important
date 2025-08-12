@@ -8,6 +8,14 @@
 \description{
 Interfaces for choosing important predictors in supervised regression, classification, and censored regression models.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/tidymodels/important}
+  \item Report bugs at \url{https://github.com/tidymodels/important/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Max Kuhn \email{max@posit.co} (\href{https://orcid.org/0000-0003-2402-136X}{ORCID})
 
