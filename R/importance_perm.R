@@ -142,26 +142,15 @@ importance_perm <- function(
   # ------------------------------------------------------------------------------
   # Generate all permutations
 
-  rlang::local_options(doFuture.rng.onMisuse = "ignore")
+  par_choice <- choose_framework(wflow, fake_ctrl)
+
+  if (par_choice == "future") {
+  	rlang::local_options(doFuture.rng.onMisuse = "ignore")
+  }
+  perms_cl <- parallel_cl(par_choice, perm_combos)
+
   res_perms <-
-    future.apply::future_lapply(
-      perm_combos,
-      FUN = future_wrapper,
-
-      future.packages = pkgs,
-      future.label = "permutations-%d",
-      future.seed = NULL,
-
-      is_perm = TRUE,
-      type = type,
-      wflow_fitted = wflow,
-      dat = extracted_data,
-      metrics = metrics,
-      size = size,
-      outcome = outcome_nm,
-      eval_time = eval_time,
-      event_level = event_level
-    ) |>
+  	rlang::eval_tidy(perms_cl) |>
     purrr::list_rbind()
 
   # ------------------------------------------------------------------------------
@@ -239,7 +228,8 @@ importance_perm <- function(
   res
 }
 
-future_wrapper <- function(
+# TODO add pkgs arg and set parallel seeds
+metric_wrapper <- function(
   vals,
   is_perm,
   type,
