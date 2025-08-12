@@ -46,11 +46,12 @@ Visualize importance scores
 }
 \examples{
 \dontshow{if (!is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-if (!rlang::is_installed(c("modeldata", "recipes", "workflows"))) {
+if (!rlang::is_installed(c("modeldata", "recipes", "workflows", "parsnip"))) {
   library(modeldata)
   library(recipes)
   library(workflows)
   library(dplyr)
+  library(parsnip)
 
 	data(ad_data, package = "modeldata")
 
@@ -66,14 +67,14 @@ if (!rlang::is_installed(c("modeldata", "recipes", "workflows"))) {
 	###
 
 	set.seed(392)
-	imp_orig <- importance_perm(ad_fit, data = ad_data, type = "original")
+	imp_orig <- importance_perm(ad_fit, data = ad_data, type = "original", times = 3)
 
-	autoplot(imp_derv, top = 10)
+	autoplot(imp_orig, top = 10)
 
 	###
 
 	set.seed(392)
-	imp_derv <- importance_perm(ad_fit, data = ad_data, type = "derived")
+	imp_derv <- importance_perm(ad_fit, data = ad_data, type = "derived", times = 3)
 
 	autoplot(imp_derv)
 	autoplot(imp_derv, metric = "brier_class", type = "difference")
