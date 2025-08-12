@@ -16,8 +16,8 @@
 #' @param std_errs The number of standard errors to plot (when `type = "difference"`).
 #' @param ... Not used.
 #' @return A `ggplot2` object.
-#' @examplesIf !is_cran_check()
-#' if (!rlang::is_installed(c("modeldata", "recipes", "workflows", "parsnip"))) {
+#' @examples
+#' if (rlang::is_installed(c("modeldata", "recipes", "workflows", "parsnip"))) {
 #'   library(modeldata)
 #'   library(recipes)
 #'   library(workflows)

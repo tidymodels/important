@@ -54,8 +54,8 @@
 #' -  `importance`: the mean divided by the standard error.
 #'  -  For censored regression models, an additional `.eval_time` column may also
 #' be included (depending on the metric requested).
-#' @examplesIf !is_cran_check()
-#' if (!rlang::is_installed(c("modeldata", "recipes", "workflows", "parsnip"))) {
+#' @examples
+#' if (rlang::is_installed(c("modeldata", "recipes", "workflows", "parsnip"))) {
 #'   library(modeldata)
 #'   library(recipes)
 #'   library(workflows)

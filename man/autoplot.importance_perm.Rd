@@ -45,8 +45,7 @@ A \code{ggplot2} object.
 Visualize importance scores
 }
 \examples{
-\dontshow{if (!is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-if (!rlang::is_installed(c("modeldata", "recipes", "workflows", "parsnip"))) {
+if (rlang::is_installed(c("modeldata", "recipes", "workflows", "parsnip"))) {
   library(modeldata)
   library(recipes)
   library(workflows)
@@ -79,5 +78,4 @@ if (!rlang::is_installed(c("modeldata", "recipes", "workflows", "parsnip"))) {
 	autoplot(imp_derv)
 	autoplot(imp_derv, metric = "brier_class", type = "difference")
 }
-\dontshow{\}) # examplesIf}
 }

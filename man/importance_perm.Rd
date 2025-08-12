@@ -87,8 +87,7 @@ For censored data, importance is computed for each evaluation time (when a
 dynamic metric is specified).
 }
 \examples{
-\dontshow{if (!is_cran_check()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-if (!rlang::is_installed(c("modeldata", "recipes", "workflows", "parsnip"))) {
+if (rlang::is_installed(c("modeldata", "recipes", "workflows", "parsnip"))) {
   library(modeldata)
   library(recipes)
   library(workflows)
@@ -119,5 +118,4 @@ if (!rlang::is_installed(c("modeldata", "recipes", "workflows", "parsnip"))) {
                                size = 100, times = 3)
   deriv_res
 }
-\dontshow{\}) # examplesIf}
 }
