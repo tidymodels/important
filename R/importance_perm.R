@@ -147,6 +147,7 @@ importance_perm <- function(
   if (par_choice == "future") {
   	rlang::local_options(doFuture.rng.onMisuse = "ignore")
   }
+  permute <- TRUE
   perms_cl <- parallel_cl(par_choice, perm_combos)
 
   res_perms <-
@@ -156,26 +157,11 @@ importance_perm <- function(
   # ------------------------------------------------------------------------------
   # Get un-permuted performance statistics (per seed value)
 
-  rlang::local_options(doFuture.rng.onMisuse = "ignore")
+  permute <- FALSE
+  bl_cl <- parallel_cl(par_choice, perm_bl)
+
   res_bl <-
-    future.apply::future_lapply(
-      perm_bl,
-      FUN = future_wrapper,
-
-      future.packages = pkgs,
-      future.label = "baseline-%d",
-      future.seed = NULL,
-
-      is_perm = FALSE,
-      type = type,
-      wflow_fitted = wflow,
-      dat = extracted_data,
-      metrics = metrics,
-      size = size,
-      outcome = outcome_nm,
-      eval_time = eval_time,
-      event_level = event_level
-    ) |>
+  	rlang::eval_tidy(bl_cl) |>
     purrr::list_rbind() |>
     dplyr::rename(baseline = .estimate) |>
     dplyr::select(-predictor)
@@ -220,6 +206,7 @@ importance_perm <- function(
     ) |>
     dplyr::select(-sd, -permuted) |>
     dplyr::arrange(dplyr::desc(importance))
+
   class(res) <- c(
     "importance_perm",
     paste0(type, "_importance_perm"),
