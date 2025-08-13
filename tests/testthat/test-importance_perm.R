@@ -22,7 +22,7 @@ test_that("prediction api - derived predictors, regression", {
   derived_predictors <-
     reg_r_fit |>
     extract_recipe() |>
-    bake(head(CO2_ex), all_predictors())
+    recipes::bake(head(CO2_ex), recipes::all_predictors())
 
   predictions <- important:::predictions(
     reg_r_fit,
@@ -105,7 +105,7 @@ test_that("prediction api - derived predictors, classification", {
   derived_predictors <-
     cls_r_fit |>
     extract_recipe() |>
-    bake(head(ad_data_small), all_predictors())
+    recipes::bake(head(ad_data_small), recipes::all_predictors())
 
   predictions <- important:::predictions(
     cls_r_fit,
@@ -198,7 +198,7 @@ test_that("compute metrics - original predictors, regression", {
       .estimator = character(0),
       .estimate = numeric(0),
       predictor = character(0),
-      seed = numeric(0)
+      id = numeric(0)
     )
 
   set.seed(1)
@@ -262,13 +262,13 @@ test_that("compute metrics - derived predictors, regression", {
       .estimator = character(0),
       .estimate = numeric(0),
       predictor = character(0),
-      seed = numeric(0)
+      id = numeric(0)
     )
 
   derived_predictors <-
     reg_r_fit |>
     extract_recipe() |>
-    bake(CO2_ex)
+    recipes::bake(CO2_ex)
 
   set.seed(1)
   reg_bl <-
@@ -331,7 +331,7 @@ test_that("compute metrics - original predictors, classification", {
       .estimator = character(0),
       .estimate = numeric(0),
       predictor = character(0),
-      seed = numeric(0)
+      id = numeric(0)
     )
 
   set.seed(1)
@@ -401,13 +401,13 @@ test_that("compute metrics - derived predictors, classification", {
       .estimator = character(0),
       .estimate = numeric(0),
       predictor = character(0),
-      seed = numeric(0)
+      id = numeric(0)
     )
 
   derived_predictors <-
     cls_r_fit |>
     extract_recipe() |>
-    bake(ad_data_small)
+    recipes::bake(ad_data_small)
 
   set.seed(1)
   cls_bl <-
@@ -476,7 +476,7 @@ test_that("compute metrics - original predictors, censored regression", {
       .eval_time = numeric(0),
       .estimate = numeric(0),
       predictor = character(0),
-      seed = numeric(0)
+      id = numeric(0)
     )
   mtr_nms <- c(
     "roc_auc_survival",
@@ -570,7 +570,7 @@ test_that("compute metrics - derived predictors, censored regression", {
       .eval_time = numeric(0),
       .estimate = numeric(0),
       predictor = character(0),
-      seed = numeric(0)
+      id = numeric(0)
     )
   mtr_nms <- c(
     "roc_auc_survival",
@@ -688,10 +688,10 @@ test_that("compute metrics - future_wrapper - original predictors, regression", 
       .estimator = character(0),
       .estimate = numeric(0),
       predictor = character(0),
-      seed = numeric(0)
+      id = numeric(0)
     )
 
-  val_list <- list(seed = 1, column = "conc")
+  val_list <- list(id = 1, column = "conc")
 
   set.seed(1)
   reg_bl <-
