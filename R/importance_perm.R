@@ -103,9 +103,11 @@ importance_perm <- function(
   type <- rlang::arg_match(type, c("original", "derived"))
   metrics <- tune::check_metrics_arg(metrics, wflow)
   pkgs <- required_pkgs(wflow)
-  pkgs <- c("important", "tune", pkgs)
+  pkgs <- c("important", "tune", "yardstick", pkgs)
   pkgs <- unique(pkgs)
   rlang::check_installed(pkgs)
+
+  par_choice <- choose_framework(wflow, fake_ctrl)
 
   # ------------------------------------------------------------------------------
   # Pull appropriate source data
@@ -127,27 +129,32 @@ importance_perm <- function(
   # optimize how well parallel processing speeds-up computations
 
   info <- tune::metrics_info(metrics)
-  seed_vals <- sample.int(1e6, times)
+  id_vals <- sample.int(1e6, times)
 
-  perm_combos <- tidyr::crossing(seed = seed_vals, column = extracted_data_nms)
+  perm_combos <- tidyr::crossing(id = id_vals, column = extracted_data_nms)
   perm_combos <-
     vctrs::vec_chop(
       perm_combos,
       indicies = as.list(vctrs::vec_seq_along(perm_combos))
     )
 
-  perm_bl <- dplyr::tibble(seed = seed_vals)
+  perm_bl <- dplyr::tibble(id = id_vals)
   perm_bl <-
     vctrs::vec_chop(perm_bl, indicies = as.list(vctrs::vec_seq_along(perm_bl)))
 
   # ------------------------------------------------------------------------------
   # Generate all permutations
 
-  par_choice <- choose_framework(wflow, fake_ctrl)
 
   if (par_choice == "future") {
   	rlang::local_options(doFuture.rng.onMisuse = "ignore")
+  } else if (par_choice == "sequential") {
+  	# Don't fully load anything if running sequentially
+  	pkgs <- character(0)
   }
+
+
+  	par_choice
   permute <- TRUE
   perms_cl <- parallel_cl(par_choice, perm_combos)
 
@@ -156,7 +163,7 @@ importance_perm <- function(
     purrr::list_rbind()
 
   # ------------------------------------------------------------------------------
-  # Get un-permuted performance statistics (per seed value)
+  # Get un-permuted performance statistics (per id value)
 
   permute <- FALSE
   bl_cl <- parallel_cl(par_choice, perm_bl)
@@ -178,7 +185,7 @@ importance_perm <- function(
   }
 
   res <-
-    dplyr::full_join(res_perms, res_bl, by = c(join_groups, "seed")) |>
+    dplyr::full_join(res_perms, res_bl, by = c(join_groups, "id")) |>
     dplyr::full_join(info, by = ".metric") |>
     dplyr::mutate(
       # TODO add (log) ratio?
@@ -216,12 +223,12 @@ importance_perm <- function(
   res
 }
 
-# TODO add pkgs arg and set parallel seeds
 metric_wrapper <- function(
   vals,
   is_perm,
   type,
   wflow_fitted,
+  pkgs = character(0),
   dat,
   metrics,
   size,
@@ -234,10 +241,17 @@ metric_wrapper <- function(
   } else {
     col <- NULL
   }
+
+	if (length(pkgs) > 0) {
+		sshh_load <- purrr::quietly(library)
+		load_res <- purrr::map(pkgs, sshh_load, character.only = TRUE)
+	}
+
+
   res <-
     metric_iter(
       column = col,
-      seed = vals$seed[[1]],
+      seed = vals$id[[1]],
       type = type,
       wflow_fitted = wflow_fitted,
       dat = dat,
@@ -302,7 +316,7 @@ metric_iter <- function(
     column <- ".baseline"
   }
   res$predictor <- column
-  res$seed <- seed
+  res$id <- seed
   res
 }
 

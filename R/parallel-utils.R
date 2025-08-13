@@ -17,6 +17,7 @@ parallel_cl <- function(framework = "sequential", arg) {
 			type = quote(type),
 			wflow_fitted = quote(wflow),
 			dat = quote(extracted_data),
+			pkgs = quote(pkgs),
 			metrics = quote(metrics),
 			size = quote(size),
 			outcome = quote(outcome_nm),
@@ -25,7 +26,7 @@ parallel_cl <- function(framework = "sequential", arg) {
 		)
 
 	if (framework == "future") {
-		rlang::check_installed(c("future", "future.lapply"))
+		rlang::check_installed(c("future", "future.apply"))
 		iter_cl <- rlang::call_modify(
 			iter_cl,
 			!!!base_args,
