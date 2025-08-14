@@ -1,7 +1,7 @@
 # compute metrics - derived predictors, censored regression
 
     Code
-      important:::metric_iter(column = "moash", seed = 1, type = "derived",
+      important:::metric_iter(column = "moash", seed = ex_seed, type = "derived",
         wflow_fitted = srv_fit, dat = derived_predictors, metrics = srv_mtr, size = 20,
         outcome = "event_time", eval_time = srv_times, event_level = "first")
     Condition

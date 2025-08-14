@@ -78,3 +78,17 @@ if (rlang::is_installed("censored")) {
 }
 
 srv_mtr <- yardstick::metric_set(yardstick::concordance_survival, yardstick::roc_auc_survival)
+
+
+# ------------------------------------------------------------------------------
+
+# fmt: skip
+ex_seed <-
+	list(
+		seed = list(
+			c(10407L, -216878323L, -959064183L, 1254362331L,
+				-777164474L, -83959242L, -852110966L)),
+		id = 548676L
+	)
+
+

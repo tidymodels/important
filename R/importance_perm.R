@@ -160,7 +160,7 @@ importance_perm <- function(
   # optimize how well parallel processing speeds-up computations
 
   info <- tune::metrics_info(metrics)
-  id_vals <- get_parallel_seeds(5) |>
+  id_vals <- get_parallel_seeds(times) |>
     purrr::map(~ list(seed = list(.x), id = sample.int(1e6, 1)))
 
   perm_combos <- tidyr::crossing(id = id_vals, column = extracted_data_nms)
