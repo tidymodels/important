@@ -43,6 +43,37 @@
 #'
 #' For censored data, importance is computed for each evaluation time (when a
 #' dynamic metric is specified).
+#'
+#' By default, no parallelism is used to process models in \pkg{tune}; you have
+#' to opt-in.
+#'
+#' ## Using future to parallel process
+#'
+#' You should install the package and choose your flavor of parallelism using
+#' the [plan][future::plan] function. This allows you to specify the number of
+#' worker processes and the specific technology to use.
+#'
+#' For example, you can use:
+#'
+#' ```r
+#'    library(future)
+#'    plan(multisession, workers = 4)
+#' ```
+#' and work will be conducted simultaneously (unless there is an exception; see
+#' the section below).
+#'
+#' See [future::plan()] for possible options other than `multisession`.
+#'
+#' ## Using mirai  to parallel process
+#'
+#' To set the specific for parallel processing with \pkg{mirai}, use the
+#' [mirai::daemons()] function. The first argument, `n`, determines the number
+#' of parallel workers. Using `daemons(0)` reverts to sequential processing.
+#'
+#' The arguments `url` and `remote` are used to set up and launch parallel
+#' processes over the network for distributed computing. See [mirai::daemons()]
+#' documentation for more details.
+#'
 #' @return A tibble with extra classes `"importance_perm"` and either
 #' "`original_importance_perm"` or "`derived_importance_perm"`. The columns are:
 #' -  `.metric` the name of the performance metric:
@@ -129,7 +160,8 @@ importance_perm <- function(
   # optimize how well parallel processing speeds-up computations
 
   info <- tune::metrics_info(metrics)
-  id_vals <- sample.int(1e6, times)
+  id_vals <- get_parallel_seeds(5) |>
+    purrr::map(~ list(seed = list(.x), id = sample.int(1e6, 1)))
 
   perm_combos <- tidyr::crossing(id = id_vals, column = extracted_data_nms)
   perm_combos <-
@@ -142,39 +174,38 @@ importance_perm <- function(
   perm_bl <-
     vctrs::vec_chop(perm_bl, indicies = as.list(vctrs::vec_seq_along(perm_bl)))
 
-  # ------------------------------------------------------------------------------
-  # Generate all permutations
-
+  # ----------------------------------------------------------------------------
+  # Determine whether to load packages or not
 
   if (par_choice == "future") {
-  	rlang::local_options(doFuture.rng.onMisuse = "ignore")
+    rlang::local_options(doFuture.rng.onMisuse = "ignore")
   } else if (par_choice == "sequential") {
-  	# Don't fully load anything if running sequentially
-  	pkgs <- character(0)
+    # Don't fully load anything if running sequentially
+    pkgs <- character(0)
   }
+  # ----------------------------------------------------------------------------
+  # Generate all permutations
 
-
-  	par_choice
   permute <- TRUE
   perms_cl <- parallel_cl(par_choice, perm_combos)
 
   res_perms <-
-  	rlang::eval_tidy(perms_cl) |>
+    rlang::eval_tidy(perms_cl) |>
     purrr::list_rbind()
 
-  # ------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   # Get un-permuted performance statistics (per id value)
 
   permute <- FALSE
   bl_cl <- parallel_cl(par_choice, perm_bl)
 
   res_bl <-
-  	rlang::eval_tidy(bl_cl) |>
+    rlang::eval_tidy(bl_cl) |>
     purrr::list_rbind() |>
     dplyr::rename(baseline = .estimate) |>
     dplyr::select(-predictor)
 
-  # ------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   # Combine and summarize results
 
   has_eval_time <- any(names(res_perms) == ".eval_time")
@@ -242,11 +273,10 @@ metric_wrapper <- function(
     col <- NULL
   }
 
-	if (length(pkgs) > 0) {
-		sshh_load <- purrr::quietly(library)
-		load_res <- purrr::map(pkgs, sshh_load, character.only = TRUE)
-	}
-
+  if (length(pkgs) > 0) {
+    sshh_load <- purrr::quietly(library)
+    load_res <- purrr::map(pkgs, sshh_load, character.only = TRUE)
+  }
 
   res <-
     metric_iter(
@@ -276,8 +306,14 @@ metric_iter <- function(
   eval_time,
   event_level
 ) {
+  orig_seed <- .Random.seed
+  # Set seed within the worker process
+  assign(".Random.seed", seed$seed[[1]], envir = .GlobalEnv)
+  withr::defer(assign(".Random.seed", orig_seed, envir = .GlobalEnv))
+
+  # ----------------------------------------------------------------------------
+
   info <- tune::metrics_info(metrics)
-  set.seed(seed)
   n <- nrow(dat)
 
   if (!is.null(column)) {
@@ -316,7 +352,7 @@ metric_iter <- function(
     column <- ".baseline"
   }
   res$predictor <- column
-  res$id <- seed
+  res$id <- seed$id
   res
 }
 

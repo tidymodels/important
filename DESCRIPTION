@@ -28,6 +28,7 @@ Imports:
     tidyr,
     tune,
     vctrs,
+    withr,
     workflows
 Suggests: 
     censored,
@@ -38,6 +39,7 @@ Suggests:
     parsnip,
     recipes,
     spelling,
+    survival,
     testthat (>= 3.0.0),
     yardstick
 Config/Needs/website: tidyverse/tidytemplate, tidymodels
