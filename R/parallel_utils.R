@@ -31,7 +31,7 @@ parallel_cl <- function(framework = "sequential", arg) {
 			iter_cl,
 			!!!base_args,
 			future.label = "permutations-%d",
-			future.seed = NULL
+			future.seed = TRUE
 		)
 	} else if (framework == "mirai") {
 		rlang::check_installed("mirai")
