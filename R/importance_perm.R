@@ -66,7 +66,7 @@
 #'
 #' ## Using mirai  to parallel process
 #'
-#' To set the specific for parallel processing with \pkg{mirai}, use the
+#' To configure parallel processing with \pkg{mirai}, use the
 #' [mirai::daemons()] function. The first argument, `n`, determines the number
 #' of parallel workers. Using `daemons(0)` reverts to sequential processing.
 #'
