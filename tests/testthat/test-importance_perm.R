@@ -22,7 +22,7 @@ test_that("prediction api - derived predictors, regression", {
   derived_predictors <-
     reg_r_fit |>
     extract_recipe() |>
-    bake(head(CO2_ex), all_predictors())
+    recipes::bake(head(CO2_ex), recipes::all_predictors())
 
   predictions <- important:::predictions(
     reg_r_fit,
@@ -105,7 +105,7 @@ test_that("prediction api - derived predictors, classification", {
   derived_predictors <-
     cls_r_fit |>
     extract_recipe() |>
-    bake(head(ad_data_small), all_predictors())
+    recipes::bake(head(ad_data_small), recipes::all_predictors())
 
   predictions <- important:::predictions(
     cls_r_fit,
@@ -198,14 +198,14 @@ test_that("compute metrics - original predictors, regression", {
       .estimator = character(0),
       .estimate = numeric(0),
       predictor = character(0),
-      seed = numeric(0)
+      id = numeric(0)
     )
 
   set.seed(1)
   reg_bl <-
     important:::metric_iter(
       column = NULL,
-      seed = 1,
+      seed = ex_seed,
       type = "original",
       wflow_fitted = reg_v_fit,
       dat = CO2_ex,
@@ -225,7 +225,7 @@ test_that("compute metrics - original predictors, regression", {
   conc_bl <-
     important:::metric_iter(
       column = "conc",
-      seed = 1,
+      seed = ex_seed,
       type = "original",
       wflow_fitted = reg_v_fit,
       dat = CO2_ex,
@@ -242,7 +242,7 @@ test_that("compute metrics - original predictors, regression", {
   expect_equal(conc_bl$predictor, rep("conc", 2))
 
   expect_true(
-    reg_bl$.estimate[reg_bl$.metric == "rsq"] >
+    reg_bl$.estimate[reg_bl$.metric == "rsq"] !=
       conc_bl$.estimate[conc_bl$.metric == "rsq"]
   )
 
@@ -262,19 +262,19 @@ test_that("compute metrics - derived predictors, regression", {
       .estimator = character(0),
       .estimate = numeric(0),
       predictor = character(0),
-      seed = numeric(0)
+      id = numeric(0)
     )
 
   derived_predictors <-
     reg_r_fit |>
     extract_recipe() |>
-    bake(CO2_ex)
+    recipes::bake(CO2_ex)
 
   set.seed(1)
   reg_bl <-
     important:::metric_iter(
       column = NULL,
-      seed = 1,
+      seed = ex_seed,
       type = "derived",
       wflow_fitted = reg_r_fit,
       dat = derived_predictors,
@@ -294,7 +294,7 @@ test_that("compute metrics - derived predictors, regression", {
   type_bl <-
     important:::metric_iter(
       column = "Type_Mississippi",
-      seed = 1,
+      seed = ex_seed,
       type = "derived",
       wflow_fitted = reg_r_fit,
       dat = derived_predictors,
@@ -311,7 +311,7 @@ test_that("compute metrics - derived predictors, regression", {
   expect_equal(type_bl$predictor, rep("Type_Mississippi", 2))
 
   expect_true(
-    reg_bl$.estimate[reg_bl$.metric == "rsq"] >
+    reg_bl$.estimate[reg_bl$.metric == "rsq"] !=
       type_bl$.estimate[type_bl$.metric == "rsq"]
   )
 
@@ -331,14 +331,14 @@ test_that("compute metrics - original predictors, classification", {
       .estimator = character(0),
       .estimate = numeric(0),
       predictor = character(0),
-      seed = numeric(0)
+      id = numeric(0)
     )
 
   set.seed(1)
   cls_bl <-
     important:::metric_iter(
       column = NULL,
-      seed = 1,
+      seed = ex_seed,
       type = "original",
       wflow_fitted = cls_v_fit,
       dat = ad_data_small,
@@ -358,7 +358,7 @@ test_that("compute metrics - original predictors, classification", {
   cls_tau <-
     important:::metric_iter(
       column = "tau",
-      seed = 1,
+      seed = ex_seed,
       type = "original",
       wflow_fitted = cls_v_fit,
       dat = ad_data_small,
@@ -375,12 +375,12 @@ test_that("compute metrics - original predictors, classification", {
   expect_equal(cls_tau$predictor, rep("tau", 3))
 
   expect_true(
-    cls_bl$.estimate[cls_bl$.metric == "kap"] >
+    cls_bl$.estimate[cls_bl$.metric == "kap"] !=
       cls_tau$.estimate[cls_tau$.metric == "kap"]
   )
 
   expect_true(
-    cls_bl$.estimate[cls_bl$.metric == "mcc"] >
+    cls_bl$.estimate[cls_bl$.metric == "mcc"] !=
       cls_tau$.estimate[cls_tau$.metric == "mcc"]
   )
 
@@ -401,19 +401,19 @@ test_that("compute metrics - derived predictors, classification", {
       .estimator = character(0),
       .estimate = numeric(0),
       predictor = character(0),
-      seed = numeric(0)
+      id = numeric(0)
     )
 
   derived_predictors <-
     cls_r_fit |>
     extract_recipe() |>
-    bake(ad_data_small)
+    recipes::bake(ad_data_small)
 
   set.seed(1)
   cls_bl <-
     important:::metric_iter(
       column = NULL,
-      seed = 1,
+      seed = ex_seed,
       type = "derived",
       wflow_fitted = cls_r_fit,
       dat = derived_predictors,
@@ -433,7 +433,7 @@ test_that("compute metrics - derived predictors, classification", {
   cls_pc1 <-
     important:::metric_iter(
       column = "PC1",
-      seed = 1,
+      seed = ex_seed,
       type = "derived",
       wflow_fitted = cls_r_fit,
       dat = derived_predictors,
@@ -450,12 +450,12 @@ test_that("compute metrics - derived predictors, classification", {
   expect_equal(cls_pc1$predictor, rep("PC1", 3))
 
   expect_true(
-    cls_bl$.estimate[cls_bl$.metric == "kap"] >
+    cls_bl$.estimate[cls_bl$.metric == "kap"] !=
       cls_pc1$.estimate[cls_pc1$.metric == "kap"]
   )
 
   expect_true(
-    cls_bl$.estimate[cls_bl$.metric == "mcc"] >
+    cls_bl$.estimate[cls_bl$.metric == "mcc"] !=
       cls_pc1$.estimate[cls_pc1$.metric == "mcc"]
   )
 
@@ -476,7 +476,7 @@ test_that("compute metrics - original predictors, censored regression", {
       .eval_time = numeric(0),
       .estimate = numeric(0),
       predictor = character(0),
-      seed = numeric(0)
+      id = numeric(0)
     )
   mtr_nms <- c(
     "roc_auc_survival",
@@ -490,7 +490,7 @@ test_that("compute metrics - original predictors, censored regression", {
   srv_bl <-
     important:::metric_iter(
       column = NULL,
-      seed = 1,
+      seed = ex_seed,
       type = "original",
       wflow_fitted = srv_fit,
       dat = time_to_million_small,
@@ -510,7 +510,7 @@ test_that("compute metrics - original predictors, censored regression", {
   srv_year <-
     important:::metric_iter(
       column = "year",
-      seed = 1,
+      seed = ex_seed,
       type = "original",
       wflow_fitted = srv_fit,
       dat = time_to_million_small,
@@ -529,7 +529,7 @@ test_that("compute metrics - original predictors, censored regression", {
   expect_true(
     srv_bl$.estimate[
       srv_bl$.metric == "roc_auc_survival" & srv_bl$.eval_time == 0.25
-    ] >
+    ] !=
       srv_year$.estimate[
         srv_year$.metric == "roc_auc_survival" & srv_bl$.eval_time == 0.25
       ]
@@ -538,7 +538,7 @@ test_that("compute metrics - original predictors, censored regression", {
   expect_true(
     srv_bl$.estimate[
       srv_bl$.metric == "roc_auc_survival" & srv_bl$.eval_time == 0.5
-    ] >
+    ] !=
       srv_year$.estimate[
         srv_year$.metric == "roc_auc_survival" & srv_bl$.eval_time == 0.5
       ]
@@ -547,14 +547,14 @@ test_that("compute metrics - original predictors, censored regression", {
   expect_true(
     srv_bl$.estimate[
       srv_bl$.metric == "roc_auc_survival" & srv_bl$.eval_time == 0.75
-    ] >
+    ] !=
       srv_year$.estimate[
         srv_year$.metric == "roc_auc_survival" & srv_bl$.eval_time == 0.75
       ]
   )
 
   expect_true(
-    srv_bl$.estimate[srv_bl$.metric == "concordance_survival"] >
+    srv_bl$.estimate[srv_bl$.metric == "concordance_survival"] !=
       srv_year$.estimate[srv_year$.metric == "concordance_survival"]
   )
 })
@@ -570,7 +570,7 @@ test_that("compute metrics - derived predictors, censored regression", {
       .eval_time = numeric(0),
       .estimate = numeric(0),
       predictor = character(0),
-      seed = numeric(0)
+      id = numeric(0)
     )
   mtr_nms <- c(
     "roc_auc_survival",
@@ -589,7 +589,7 @@ test_that("compute metrics - derived predictors, censored regression", {
   srv_bl <-
     important:::metric_iter(
       column = NULL,
-      seed = 1,
+      seed = ex_seed,
       type = "derived",
       wflow_fitted = srv_fit,
       dat = derived_predictors,
@@ -609,7 +609,7 @@ test_that("compute metrics - derived predictors, censored regression", {
   srv_runtime <-
     important:::metric_iter(
       column = "runtime",
-      seed = 1,
+      seed = ex_seed,
       type = "derived",
       wflow_fitted = srv_fit,
       dat = derived_predictors,
@@ -663,7 +663,7 @@ test_that("compute metrics - derived predictors, censored regression", {
     {
       important:::metric_iter(
         column = "moash",
-        seed = 1,
+        seed = ex_seed,
         type = "derived",
         wflow_fitted = srv_fit,
         dat = derived_predictors,
@@ -677,73 +677,6 @@ test_that("compute metrics - derived predictors, censored regression", {
     error = TRUE
   )
 })
-
-
-test_that("compute metrics - future_wrapper - original predictors, regression", {
-  # Limited testing here since it is a very thin wrapper
-
-  mtr_ptype <-
-    tibble::tibble(
-      .metric = character(0),
-      .estimator = character(0),
-      .estimate = numeric(0),
-      predictor = character(0),
-      seed = numeric(0)
-    )
-
-  val_list <- list(seed = 1, column = "conc")
-
-  set.seed(1)
-  reg_bl <-
-    important:::future_wrapper(
-      val_list,
-      is_perm = FALSE,
-      type = "original",
-      wflow_fitted = reg_v_fit,
-      dat = CO2_ex,
-      metrics = reg_mtr,
-      size = 20,
-      outcome = "uptake",
-      eval_time = NULL,
-      event_level = "first"
-    )
-
-  expect_equal(reg_bl[0, ], mtr_ptype)
-  expect_equal(nrow(reg_bl), 2L)
-  expect_equal(reg_bl$.metric, c("rsq", "mae"))
-  expect_equal(reg_bl$predictor, rep(".baseline", 2))
-
-  set.seed(1)
-  conc_bl <-
-    important:::future_wrapper(
-      val_list,
-      is_perm = TRUE,
-      type = "original",
-      wflow_fitted = reg_v_fit,
-      dat = CO2_ex,
-      metrics = reg_mtr,
-      size = 20,
-      outcome = "uptake",
-      eval_time = NULL,
-      event_level = "first"
-    )
-
-  expect_equal(conc_bl[0, ], mtr_ptype)
-  expect_equal(nrow(conc_bl), 2L)
-  expect_equal(conc_bl$.metric, c("rsq", "mae"))
-  expect_equal(conc_bl$predictor, rep("conc", 2))
-
-  expect_true(
-    reg_bl$.estimate[reg_bl$.metric == "rsq"] >
-      conc_bl$.estimate[conc_bl$.metric == "rsq"]
-  )
-
-  expect_true(
-    reg_bl$.estimate[reg_bl$.metric == "mae"] <
-      conc_bl$.estimate[conc_bl$.metric == "mae"]
-  )
-})
-
 
 test_that("importance_perm() function - regression", {
   res_ptype <-

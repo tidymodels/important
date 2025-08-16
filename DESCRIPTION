@@ -19,7 +19,6 @@ Depends:
 Imports: 
     cli,
     dplyr,
-    future.apply,
     generics,
     ggplot2,
     hardhat (>= 1.4.0.9002),
@@ -29,13 +28,18 @@ Imports:
     tidyr,
     tune,
     vctrs,
+    withr,
     workflows
 Suggests: 
     censored,
+    future,
+    future.apply,
+    mirai,
     modeldata,
     parsnip,
     recipes,
     spelling,
+    survival,
     testthat (>= 3.0.0),
     yardstick
 Config/Needs/website: tidyverse/tidytemplate, tidymodels

@@ -43,6 +43,37 @@
 #'
 #' For censored data, importance is computed for each evaluation time (when a
 #' dynamic metric is specified).
+#'
+#' By default, no parallelism is used to process models in \pkg{tune}; you have
+#' to opt-in.
+#'
+#' ## Using future to parallel process
+#'
+#' You should install the package and choose your flavor of parallelism using
+#' the [plan][future::plan] function. This allows you to specify the number of
+#' worker processes and the specific technology to use.
+#'
+#' For example, you can use:
+#'
+#' ```r
+#'    library(future)
+#'    plan(multisession, workers = 4)
+#' ```
+#' and work will be conducted simultaneously (unless there is an exception; see
+#' the section below).
+#'
+#' See [future::plan()] for possible options other than `multisession`.
+#'
+#' ## Using mirai  to parallel process
+#'
+#' To configure parallel processing with \pkg{mirai}, use the
+#' [mirai::daemons()] function. The first argument, `n`, determines the number
+#' of parallel workers. Using `daemons(0)` reverts to sequential processing.
+#'
+#' The arguments `url` and `remote` are used to set up and launch parallel
+#' processes over the network for distributed computing. See [mirai::daemons()]
+#' documentation for more details.
+#'
 #' @return A tibble with extra classes `"importance_perm"` and either
 #' "`original_importance_perm"` or "`derived_importance_perm"`. The columns are:
 #' -  `.metric` the name of the performance metric:
@@ -103,9 +134,11 @@ importance_perm <- function(
   type <- rlang::arg_match(type, c("original", "derived"))
   metrics <- tune::check_metrics_arg(metrics, wflow)
   pkgs <- required_pkgs(wflow)
-  pkgs <- c("important", "tune", pkgs)
+  pkgs <- c("important", "tune", "yardstick", pkgs)
   pkgs <- unique(pkgs)
   rlang::check_installed(pkgs)
+
+  par_choice <- choose_framework(wflow, fake_ctrl)
 
   # ------------------------------------------------------------------------------
   # Pull appropriate source data
@@ -127,72 +160,52 @@ importance_perm <- function(
   # optimize how well parallel processing speeds-up computations
 
   info <- tune::metrics_info(metrics)
-  seed_vals <- sample.int(1e6, times)
+  id_vals <- get_parallel_seeds(times) |>
+    purrr::map(~ list(seed = list(.x), id = sample.int(1e6, 1)))
 
-  perm_combos <- tidyr::crossing(seed = seed_vals, column = extracted_data_nms)
+  perm_combos <- tidyr::crossing(id = id_vals, column = extracted_data_nms)
   perm_combos <-
     vctrs::vec_chop(
       perm_combos,
       indicies = as.list(vctrs::vec_seq_along(perm_combos))
     )
 
-  perm_bl <- dplyr::tibble(seed = seed_vals)
+  perm_bl <- dplyr::tibble(id = id_vals)
   perm_bl <-
     vctrs::vec_chop(perm_bl, indicies = as.list(vctrs::vec_seq_along(perm_bl)))
 
-  # ------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
+  # Determine whether to load packages or not
+
+  if (par_choice == "future") {
+    rlang::local_options(doFuture.rng.onMisuse = "ignore")
+  } else if (par_choice == "sequential") {
+    # Don't fully load anything if running sequentially
+    pkgs <- character(0)
+  }
+  # ----------------------------------------------------------------------------
   # Generate all permutations
 
-  rlang::local_options(doFuture.rng.onMisuse = "ignore")
+  permute <- TRUE
+  perms_cl <- parallel_cl(par_choice, perm_combos)
+
   res_perms <-
-    future.apply::future_lapply(
-      perm_combos,
-      FUN = future_wrapper,
-
-      future.packages = pkgs,
-      future.label = "permutations-%d",
-      future.seed = NULL,
-
-      is_perm = TRUE,
-      type = type,
-      wflow_fitted = wflow,
-      dat = extracted_data,
-      metrics = metrics,
-      size = size,
-      outcome = outcome_nm,
-      eval_time = eval_time,
-      event_level = event_level
-    ) |>
+    rlang::eval_tidy(perms_cl) |>
     purrr::list_rbind()
 
-  # ------------------------------------------------------------------------------
-  # Get un-permuted performance statistics (per seed value)
+  # ----------------------------------------------------------------------------
+  # Get un-permuted performance statistics (per id value)
 
-  rlang::local_options(doFuture.rng.onMisuse = "ignore")
+  permute <- FALSE
+  bl_cl <- parallel_cl(par_choice, perm_bl)
+
   res_bl <-
-    future.apply::future_lapply(
-      perm_bl,
-      FUN = future_wrapper,
-
-      future.packages = pkgs,
-      future.label = "baseline-%d",
-      future.seed = NULL,
-
-      is_perm = FALSE,
-      type = type,
-      wflow_fitted = wflow,
-      dat = extracted_data,
-      metrics = metrics,
-      size = size,
-      outcome = outcome_nm,
-      eval_time = eval_time,
-      event_level = event_level
-    ) |>
+    rlang::eval_tidy(bl_cl) |>
     purrr::list_rbind() |>
     dplyr::rename(baseline = .estimate) |>
     dplyr::select(-predictor)
 
-  # ------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   # Combine and summarize results
 
   has_eval_time <- any(names(res_perms) == ".eval_time")
@@ -203,7 +216,7 @@ importance_perm <- function(
   }
 
   res <-
-    dplyr::full_join(res_perms, res_bl, by = c(join_groups, "seed")) |>
+    dplyr::full_join(res_perms, res_bl, by = c(join_groups, "id")) |>
     dplyr::full_join(info, by = ".metric") |>
     dplyr::mutate(
       # TODO add (log) ratio?
@@ -232,6 +245,7 @@ importance_perm <- function(
     ) |>
     dplyr::select(-sd, -permuted) |>
     dplyr::arrange(dplyr::desc(importance))
+
   class(res) <- c(
     "importance_perm",
     paste0(type, "_importance_perm"),
@@ -240,11 +254,12 @@ importance_perm <- function(
   res
 }
 
-future_wrapper <- function(
+metric_wrapper <- function(
   vals,
   is_perm,
   type,
   wflow_fitted,
+  pkgs = character(0),
   dat,
   metrics,
   size,
@@ -257,10 +272,16 @@ future_wrapper <- function(
   } else {
     col <- NULL
   }
+
+  if (length(pkgs) > 0) {
+    sshh_load <- purrr::quietly(library)
+    load_res <- purrr::map(pkgs, sshh_load, character.only = TRUE)
+  }
+
   res <-
     metric_iter(
       column = col,
-      seed = vals$seed[[1]],
+      seed = vals$id[[1]],
       type = type,
       wflow_fitted = wflow_fitted,
       dat = dat,
@@ -285,8 +306,14 @@ metric_iter <- function(
   eval_time,
   event_level
 ) {
+  orig_seed <- .Random.seed
+  # Set seed within the worker process
+  assign(".Random.seed", seed$seed[[1]], envir = .GlobalEnv)
+  withr::defer(assign(".Random.seed", orig_seed, envir = .GlobalEnv))
+
+  # ----------------------------------------------------------------------------
+
   info <- tune::metrics_info(metrics)
-  set.seed(seed)
   n <- nrow(dat)
 
   if (!is.null(column)) {
@@ -325,7 +352,7 @@ metric_iter <- function(
     column <- ".baseline"
   }
   res$predictor <- column
-  res$seed <- seed
+  res$id <- seed$id
   res
 }
 

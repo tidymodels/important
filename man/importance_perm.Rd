@@ -85,6 +85,37 @@ and each performance metric. If no metric is specified, defaults are used:
 
 For censored data, importance is computed for each evaluation time (when a
 dynamic metric is specified).
+
+By default, no parallelism is used to process models in \pkg{tune}; you have
+to opt-in.
+\subsection{Using future to parallel process}{
+
+You should install the package and choose your flavor of parallelism using
+the \link[future:plan]{plan} function. This allows you to specify the number of
+worker processes and the specific technology to use.
+
+For example, you can use:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{   library(future)
+   plan(multisession, workers = 4)
+}\if{html}{\out{</div>}}
+
+and work will be conducted simultaneously (unless there is an exception; see
+the section below).
+
+See \code{\link[future:plan]{future::plan()}} for possible options other than \code{multisession}.
+}
+
+\subsection{Using mirai  to parallel process}{
+
+To set the specific for parallel processing with \pkg{mirai}, use the
+\code{\link[mirai:daemons]{mirai::daemons()}} function. The first argument, \code{n}, determines the number
+of parallel workers. Using \code{daemons(0)} reverts to sequential processing.
+
+The arguments \code{url} and \code{remote} are used to set up and launch parallel
+processes over the network for distributed computing. See \code{\link[mirai:daemons]{mirai::daemons()}}
+documentation for more details.
+}
 }
 \examples{
 if (rlang::is_installed(c("modeldata", "recipes", "workflows", "parsnip"))) {
