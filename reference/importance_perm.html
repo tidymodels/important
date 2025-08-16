@@ -140,6 +140,34 @@ and each performance metric. If no metric is specified, defaults are used:</p><u
 <li><p>Censored regression: <code><a href="https://yardstick.tidymodels.org/reference/brier_survival.html" class="external-link">yardstick::brier_survival()</a></code></p></li>
 </ul><p>For censored data, importance is computed for each evaluation time (when a
 dynamic metric is specified).</p>
+<p>By default, no parallelism is used to process models in <span class="pkg">tune</span>; you have
+to opt-in.</p><div class="section">
+<h3 id="using-future-to-parallel-process">Using future to parallel process<a class="anchor" aria-label="anchor" href="#using-future-to-parallel-process"></a></h3>
+
+
+<p>You should install the package and choose your flavor of parallelism using
+the <a href="https://future.futureverse.org/reference/plan.html" class="external-link">plan</a> function. This allows you to specify the number of
+worker processes and the specific technology to use.</p>
+<p>For example, you can use:</p>
+<p></p><div class="sourceCode r"><pre><code><span>   <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://future.futureverse.org" class="external-link">future</a></span><span class="op">)</span></span>
+<span>   <span class="fu"><a href="https://future.futureverse.org/reference/plan.html" class="external-link">plan</a></span><span class="op">(</span><span class="va">multisession</span>, workers <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre><p></p></div>
+<p>and work will be conducted simultaneously (unless there is an exception; see
+the section below).</p>
+<p>See <code><a href="https://future.futureverse.org/reference/plan.html" class="external-link">future::plan()</a></code> for possible options other than <code>multisession</code>.</p>
+</div>
+
+<div class="section">
+<h3 id="using-mirai-to-parallel-process">Using mirai  to parallel process<a class="anchor" aria-label="anchor" href="#using-mirai-to-parallel-process"></a></h3>
+
+
+<p>To set the specific for parallel processing with <span class="pkg">mirai</span>, use the
+<code><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">mirai::daemons()</a></code> function. The first argument, <code>n</code>, determines the number
+of parallel workers. Using <code>daemons(0)</code> reverts to sequential processing.</p>
+<p>The arguments <code>url</code> and <code>remote</code> are used to set up and launch parallel
+processes over the network for distributed computing. See <code><a href="https://mirai.r-lib.org/reference/daemons.html" class="external-link">mirai::daemons()</a></code>
+documentation for more details.</p>
+</div>
+
     </div>
 
     <div id="ref-examples">
@@ -178,16 +206,16 @@ dynamic metric is specified).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 24 × 6</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    .metric     predictor     n    mean std_err importance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> brier_class A             3 0.113   0.009<span style="text-decoration: underline;">94</span>     11.3  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> roc_auc     A             3 0.141   0.020<span style="text-decoration: underline;">7</span>       6.80 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> accuracy    A             3 0.157   0.023<span style="text-decoration: underline;">3</span>       6.71 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> brier_class B             3 0.156   0.026<span style="text-decoration: underline;">1</span>       5.97 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> roc_auc     B             3 0.221   0.038<span style="text-decoration: underline;">3</span>       5.77 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> accuracy    B             3 0.18    0.037<span style="text-decoration: underline;">9</span>       4.75 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> accuracy    A_x_B         3 0.08    0.017<span style="text-decoration: underline;">3</span>       4.62 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> roc_auc     A_x_B         3 0.059<span style="text-decoration: underline;">4</span>  0.028<span style="text-decoration: underline;">3</span>       2.10 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> brier_class A_x_B         3 0.035<span style="text-decoration: underline;">4</span>  0.018<span style="text-decoration: underline;">8</span>       1.89 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> accuracy    PC3           3 0.006<span style="text-decoration: underline;">67</span> 0.033<span style="text-decoration: underline;">8</span>       0.197</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> accuracy    B             3  0.207  0.003<span style="text-decoration: underline;">33</span>     62.0  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> brier_class B             3  0.165  0.013<span style="text-decoration: underline;">2</span>      12.5  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> roc_auc     B             3  0.229  0.019<span style="text-decoration: underline;">1</span>      12.0  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> brier_class A             3  0.127  0.022<span style="text-decoration: underline;">6</span>       5.64 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> roc_auc     A             3  0.153  0.040<span style="text-decoration: underline;">2</span>       3.81 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> accuracy    A             3  0.16   0.045<span style="text-decoration: underline;">1</span>       3.55 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> brier_class A_x_B         3  0.032<span style="text-decoration: underline;">8</span> 0.012<span style="text-decoration: underline;">8</span>       2.56 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> roc_auc     A_x_B         3  0.065<span style="text-decoration: underline;">3</span> 0.028<span style="text-decoration: underline;">7</span>       2.28 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> accuracy    A_x_B         3  0.07   0.035<span style="text-decoration: underline;">1</span>       1.99 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> accuracy    PC1           3 -<span style="color: #BB0000;">0.03</span>   0.043<span style="text-decoration: underline;">6</span>      -<span style="color: #BB0000;">0.688</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 14 more rows</span></span>
 </code></pre></div>
     </div>
