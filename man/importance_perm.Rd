@@ -108,7 +108,7 @@ See \code{\link[future:plan]{future::plan()}} for possible options other than \c
 
 \subsection{Using mirai  to parallel process}{
 
-To set the specific for parallel processing with \pkg{mirai}, use the
+To configure parallel processing with \pkg{mirai}, use the
 \code{\link[mirai:daemons]{mirai::daemons()}} function. The first argument, \code{n}, determines the number
 of parallel workers. Using \code{daemons(0)} reverts to sequential processing.
 
