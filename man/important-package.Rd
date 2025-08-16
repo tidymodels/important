@@ -4,7 +4,7 @@
 \name{important-package}
 \alias{important}
 \alias{important-package}
-\title{important: Tools for Supervised Feature Selection}
+\title{important: Supervised Feature Selection}
 \description{
 Interfaces for choosing important predictors in supervised regression, classification, and censored regression models. Permuted importance scores (Biecek and Burzykowski (2021) \doi{10.1201/9780429027192}) can be computed for 'tidymodels' model fits.
 }

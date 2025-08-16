@@ -1,5 +1,5 @@
 Package: important
-Title: Tools for Supervised Feature Selection
+Title: Supervised Feature Selection
 Version: 0.0.1
 Authors@R: c(
     person("Max", "Kuhn", , "max@posit.co", role = c("aut", "cre"),
