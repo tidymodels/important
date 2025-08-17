@@ -7,3 +7,4 @@
 ^codecov\.yml$
 ^[\.]?air\.toml$
 ^\.vscode$
+^_pkgdown\.yml$

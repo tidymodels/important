@@ -11,6 +11,7 @@ Interfaces for choosing important predictors in supervised regression, classific
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://important.tidymodels.org/}
   \item \url{https://github.com/tidymodels/important}
   \item Report bugs at \url{https://github.com/tidymodels/important/issues}
 }
