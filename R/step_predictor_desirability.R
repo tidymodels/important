@@ -1,10 +1,11 @@
 #' Feature Selection
 #'
-#' `step_select_2()` creates a *specification* of a recipe step that will
+#' `step_predictor_desirability()` creates a *specification* of a recipe step that will
 #' perform feature selection by ...
 #'
 #' @inheritParams recipes::step_center
-#' @param threshold ...
+#' @param score A thing
+#' @param prop_terms ...
 #' @param removals A character string that contains the names of columns that
 #'   should be removed. These values are not determined until [recipes::prep()]
 #'   is called.
@@ -33,7 +34,7 @@
 #' }
 #'
 #' ```{r, echo = FALSE, results="asis"}
-#' step <- "step_select_2"
+#' step <- "step_predictor_desirability"
 #' result <- knitr::knit_child("man/rmd/tunable-args.Rmd")
 #' cat(result)
 #' ```
@@ -44,30 +45,26 @@
 #' library(recipes)
 #'
 #' rec <- recipe(mpg ~ ., data = mtcars) |>
-#'   step_select_2(all_predictors())
-#'
-#' prepped <- prep(rec)
-#'
-#' bake(prepped, mtcars)
-#'
-#' tidy(prepped, 1)
-step_select_2 <- function(
+#'   step_predictor_desirability(all_predictors())
+step_predictor_desirability <- function(
   recipe,
   ...,
+  score,
   role = NA,
   trained = FALSE,
-  threshold = 0.9,
+  prop_terms = 0.9,
   removals = NULL,
   skip = FALSE,
-  id = rand_id("select_2")
+  id = rand_id("predictor_desirability")
 ) {
   add_step(
     recipe,
-    step_select_2_new(
+    step_predictor_desirability_new(
       terms = enquos(...),
+      score = enquos(score),
       role = role,
       trained = trained,
-      threshold = threshold,
+      prop_terms = prop_terms,
       removals = removals,
       skip = skip,
       id = id,
@@ -76,23 +73,25 @@ step_select_2 <- function(
   )
 }
 
-step_select_2_new <-
+step_predictor_desirability_new <-
   function(
     terms,
+    score,
     role,
     trained,
-    threshold,
+    prop_terms,
     removals,
     skip,
     id,
     case_weights
   ) {
     step(
-      subclass = "select_2",
+      subclass = "predictor_desirability",
       terms = terms,
+      score = score,
       role = role,
       trained = trained,
-      threshold = threshold,
+      prop_terms = prop_terms,
       removals = removals,
       skip = skip,
       id = id,
@@ -101,10 +100,10 @@ step_select_2_new <-
   }
 
 #' @export
-prep.step_select_2 <- function(x, training, info = NULL, ...) {
+prep.step_predictor_desirability <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
-  check_type(training[, col_names], types = c("double", "integer"))
-  check_number_decimal(x$threshold, min = 0, max = 1, arg = "threshold")
+  check_type(training[, col_names], types = c("double", "integer", "factor"))
+  check_number_decimal(x$prop_terms, min = .Machine$double.eps, max = 1, arg = "prop_terms")
 
   wts <- get_case_weights(info, training)
   were_weights_used <- are_weights_used(wts, unsupervised = TRUE)
@@ -118,11 +117,12 @@ prep.step_select_2 <- function(x, training, info = NULL, ...) {
     filter <- character(0)
   }
 
-  step_select_2_new(
+  step_predictor_desirability_new(
     terms = x$terms,
+    score = score,
     role = x$role,
     trained = TRUE,
-    threshold = x$threshold,
+    prop_terms = x$prop_terms,
     removals = filter,
     skip = x$skip,
     id = x$id,
@@ -131,14 +131,14 @@ prep.step_select_2 <- function(x, training, info = NULL, ...) {
 }
 
 #' @export
-bake.step_select_2 <- function(object, new_data, ...) {
+bake.step_predictor_desirability <- function(object, new_data, ...) {
   new_data <- recipes_remove_cols(new_data, object)
   new_data
 }
 
 #' @export
-print.step_select_2 <- function(x, width = max(20, options()$width - 36), ...) {
-  title <- "Feature selection on "
+print.step_predictor_desirability <- function(x, width = max(20, options()$width - 36), ...) {
+  title <- "Feature selection via desirability functions on"
   print_step(
     x$removals,
     x$terms,
@@ -152,7 +152,7 @@ print.step_select_2 <- function(x, width = max(20, options()$width - 36), ...) {
 
 #' @usage NULL
 #' @export
-tidy.step_select_2 <- function(x, ...) {
+tidy.step_predictor_desirability <- function(x, ...) {
   if (is_trained(x)) {
     res <- tibble::tibble(terms = unname(x$removals))
   } else {
@@ -164,14 +164,14 @@ tidy.step_select_2 <- function(x, ...) {
 }
 
 #' @export
-tunable.step_select_2 <- function(x, ...) {
+tunable.step_predictor_desirability <- function(x, ...) {
   tibble::tibble(
-    name = "threshold",
+    name = "prop_terms",
     call_info = list(
       list(pkg = "dials", fun = "threshold")
     ),
     source = "recipe",
-    component = "step_select_2",
+    component = "step_predictor_desirability",
     component_id = x$id
   )
 }
