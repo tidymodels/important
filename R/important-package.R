@@ -2,6 +2,7 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @import recipes
 #' @import rlang
 #' @importFrom stats sd predict
 #' @importFrom hardhat extract_fit_parsnip extract_postprocessor

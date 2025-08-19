@@ -15,7 +15,8 @@ License: MIT + file LICENSE
 URL: https://github.com/tidymodels/important
 BugReports: https://github.com/tidymodels/important/issues
 Depends: 
-    R (>= 4.1.0)
+    R (>= 4.1.0),
+    recipes (>= 1.1.0)
 Imports: 
     cli,
     dplyr,
@@ -37,7 +38,6 @@ Suggests:
     mirai,
     modeldata,
     parsnip,
-    recipes,
     spelling,
     survival,
     testthat (>= 3.0.0),
