@@ -29,7 +29,8 @@ utils::globalVariables(
     "permuted",
     "predictor",
     "ranking",
-    "std_err"
+    "std_err",
+    "score"
   )
 )
 ## usethis namespace: end
