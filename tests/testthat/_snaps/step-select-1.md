@@ -69,9 +69,9 @@
 # bad args
 
     Code
-      prep(step_select_1(recipe(mpg ~ ., mtcars), all_predictors(), threshold = 2))
+      prep(step_predictor_best(recipe(mpg ~ ., mtcars), all_predictors(), threshold = 2))
     Condition
-      Error in `step_select_1()`:
+      Error in `step_predictor_best()`:
       Caused by error in `prep()`:
       ! `threshold` must be a number between 0 and 1, not the number 2.
 

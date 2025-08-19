@@ -1,6 +1,6 @@
 #' Feature Selection
 #'
-#' `step_select_1()` creates a *specification* of a recipe step that will
+#' `step_predictor_best()` creates a *specification* of a recipe step that will
 #' perform feature selection by ...
 #'
 #' @inheritParams recipes::step_center
@@ -33,7 +33,7 @@
 #' }
 #'
 #' ```{r, echo = FALSE, results="asis"}
-#' step <- "step_select_1"
+#' step <- "step_predictor_best"
 #' result <- knitr::knit_child("man/rmd/tunable-args.Rmd")
 #' cat(result)
 #' ```
@@ -44,14 +44,14 @@
 #' library(recipes)
 #'
 #' rec <- recipe(mpg ~ ., data = mtcars) |>
-#'   step_select_1(all_predictors())
+#'   step_predictor_best(all_predictors())
 #'
 #' prepped <- prep(rec)
 #'
 #' bake(prepped, mtcars)
 #'
 #' tidy(prepped, 1)
-step_select_1 <- function(
+step_predictor_best <- function(
   recipe,
   ...,
   role = NA,
@@ -101,7 +101,7 @@ step_select_1_new <-
   }
 
 #' @export
-prep.step_select_1 <- function(x, training, info = NULL, ...) {
+prep.step_predictor_best <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer"))
   check_number_decimal(x$threshold, min = 0, max = 1, arg = "threshold")
@@ -131,13 +131,17 @@ prep.step_select_1 <- function(x, training, info = NULL, ...) {
 }
 
 #' @export
-bake.step_select_1 <- function(object, new_data, ...) {
+bake.step_predictor_best <- function(object, new_data, ...) {
   new_data <- recipes_remove_cols(new_data, object)
   new_data
 }
 
 #' @export
-print.step_select_1 <- function(x, width = max(20, options()$width - 36), ...) {
+print.step_predictor_best <- function(
+  x,
+  width = max(20, options()$width - 36),
+  ...
+) {
   title <- "Feature selection on "
   print_step(
     x$removals,
@@ -152,7 +156,7 @@ print.step_select_1 <- function(x, width = max(20, options()$width - 36), ...) {
 
 #' @usage NULL
 #' @export
-tidy.step_select_1 <- function(x, ...) {
+tidy.step_predictor_best <- function(x, ...) {
   if (is_trained(x)) {
     res <- tibble::tibble(terms = unname(x$removals))
   } else {
@@ -164,14 +168,14 @@ tidy.step_select_1 <- function(x, ...) {
 }
 
 #' @export
-tunable.step_select_1 <- function(x, ...) {
+tunable.step_predictor_best <- function(x, ...) {
   tibble::tibble(
     name = "threshold",
     call_info = list(
       list(pkg = "dials", fun = "threshold")
     ),
     source = "recipe",
-    component = "step_select_1",
+    component = "step_predictor_best",
     component_id = x$id
   )
 }
