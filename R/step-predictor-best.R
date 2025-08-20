@@ -59,11 +59,11 @@ step_predictor_best <- function(
   threshold = 0.9,
   removals = NULL,
   skip = FALSE,
-  id = rand_id("select_1")
+  id = rand_id("predictor_best")
 ) {
   add_step(
     recipe,
-    step_select_1_new(
+    step_predictor_best_new(
       terms = enquos(...),
       role = role,
       trained = trained,
@@ -76,7 +76,7 @@ step_predictor_best <- function(
   )
 }
 
-step_select_1_new <-
+step_predictor_best_new <-
   function(
     terms,
     role,
@@ -88,7 +88,7 @@ step_select_1_new <-
     case_weights
   ) {
     step(
-      subclass = "select_1",
+      subclass = "predictor_best",
       terms = terms,
       role = role,
       trained = trained,
@@ -118,7 +118,7 @@ prep.step_predictor_best <- function(x, training, info = NULL, ...) {
     filter <- character(0)
   }
 
-  step_select_1_new(
+  step_predictor_best_new(
     terms = x$terms,
     role = x$role,
     trained = TRUE,
@@ -142,7 +142,7 @@ print.step_predictor_best <- function(
   width = max(20, options()$width - 36),
   ...
 ) {
-  title <- "Feature selection on "
+  title <- "Feature selection on"
   print_step(
     x$removals,
     x$terms,
