@@ -27,9 +27,9 @@ You can install the development version of important from
 [GitHub](https://github.com/) with:
 
 ``` r
-# Not yet!
-# install.packages("devtools")
-devtools::install_github("tidymodels/important")
+install.packages("devtools")
+# or
+pak::pak("tidymodels/important")
 ```
 
 ## Do we really need another package that computes variable importances?
@@ -98,16 +98,16 @@ lm_deriv_imp
 #> # A tibble: 226 × 6
 #>    .metric predictor             n  mean std_err importance
 #>    <chr>   <chr>             <int> <dbl>   <dbl>      <dbl>
-#>  1 rsq     distance_10          50 0.531 0.00642       82.7
-#>  2 mae     distance_10          50 2.24  0.0308        72.8
-#>  3 mae     day_Sat              50 1.09  0.0194        56.3
-#>  4 mae     day_Fri              50 0.904 0.0171        53.0
-#>  5 rsq     day_Sat              50 0.120 0.00274       43.8
-#>  6 mae     distance_09          50 0.783 0.0191        41.0
-#>  7 mae     day_Thu              50 0.633 0.0165        38.3
-#>  8 rsq     day_Fri              50 0.101 0.00265       37.9
-#>  9 rsq     hour_07_x_day_Sat    50 0.140 0.00380       36.8
-#> 10 rsq     hour_06_x_day_Sat    50 0.143 0.00403       35.5
+#>  1 rsq     distance_10          50 0.528 0.00655       80.5
+#>  2 mae     day_Sat              50 1.09  0.0150        72.2
+#>  3 mae     distance_10          50 2.20  0.0323        68.2
+#>  4 mae     day_Fri              50 0.877 0.0140        62.7
+#>  5 mae     day_Thu              50 0.638 0.0130        49.0
+#>  6 mae     distance_09          50 0.740 0.0156        47.3
+#>  7 mae     hour_08              50 0.520 0.0136        38.3
+#>  8 rsq     day_Sat              50 0.118 0.00327       36.2
+#>  9 rsq     hour_06_x_day_Sat    50 0.146 0.00410       35.7
+#> 10 mae     hour_08_x_day_Sat    50 0.604 0.0173        34.9
 #> # ℹ 216 more rows
 ```
 
@@ -121,11 +121,11 @@ lm_deriv_imp |>
 #> # A tibble: 5 × 6
 #>   .metric predictor       n  mean std_err importance
 #>   <chr>   <chr>       <int> <dbl>   <dbl>      <dbl>
-#> 1 mae     distance_10    50 2.24   0.0308       72.8
-#> 2 mae     day_Sat        50 1.09   0.0194       56.3
-#> 3 mae     day_Fri        50 0.904  0.0171       53.0
-#> 4 mae     distance_09    50 0.783  0.0191       41.0
-#> 5 mae     day_Thu        50 0.633  0.0165       38.3
+#> 1 mae     day_Sat        50 1.09   0.0150       72.2
+#> 2 mae     distance_10    50 2.20   0.0323       68.2
+#> 3 mae     day_Fri        50 0.877  0.0140       62.7
+#> 4 mae     day_Thu        50 0.638  0.0130       49.0
+#> 5 mae     distance_09    50 0.740  0.0156       47.3
 ```
 
 Two notes:
@@ -170,11 +170,11 @@ lm_orig_imp |>
 #> # A tibble: 5 × 6
 #>   .metric predictor     n   mean std_err importance
 #>   <chr>   <chr>     <int>  <dbl>   <dbl>      <dbl>
-#> 1 mae     hour         50 4.07    0.0332     123.  
-#> 2 mae     day          50 1.91    0.0250      76.4 
-#> 3 mae     distance     50 1.49    0.0209      71.2 
-#> 4 mae     item_24      50 0.0587  0.0149       3.93
-#> 5 mae     item_03      50 0.0446  0.0146       3.06
+#> 1 mae     hour         50 4.10    0.0320     128.  
+#> 2 mae     day          50 1.91    0.0214      89.1 
+#> 3 mae     distance     50 1.46    0.0222      66.0 
+#> 4 mae     item_24      50 0.0489  0.0119       4.11
+#> 5 mae     item_03      50 0.0337  0.0114       2.95
 ```
 
 ``` r
