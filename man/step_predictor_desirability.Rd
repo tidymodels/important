@@ -10,7 +10,9 @@ step_predictor_desirability(
   score,
   role = NA,
   trained = FALSE,
-  prop_terms = 0.9,
+  prop_terms = 0.5,
+  update_prop = TRUE,
+  results = NULL,
   removals = NULL,
   skip = FALSE,
   id = rand_id("predictor_desirability")
@@ -23,16 +25,26 @@ operations for this recipe.}
 \item{...}{One or more selector functions to choose variables for this step.
 See \code{\link[recipes:selections]{selections()}} for more details.}
 
-\item{score}{A thing}
+\item{score}{An object produced by \code{\link[desirability2:desirability]{desirability2::desirability()}} that uses
+one or more score functions from the \pkg{filtro} package. See the Details
+and Examples sections below. This argument \emph{should be named} when used.}
 
 \item{role}{Not used by this step since no new variables are created.}
 
 \item{trained}{A logical to indicate if the quantities for preprocessing have
 been estimated.}
 
-\item{prop_terms}{...}
+\item{prop_terms}{The proportion of predictors that should be retained when
+ordered by overall desirability.}
 
-\item{removals}{A character string that contains the names of columns that
+\item{update_prop}{A logical: should \code{prop_terms} be updated so that at least
+one predictor will be retained?}
+
+\item{results}{A data frame of score and desirability values for each
+predictor evaluated. These values are not determined until
+\code{\link[recipes:prep]{recipes::prep()}} is called.}
+
+\item{removals}{A character string that contains the names of predictors that
 should be removed. These values are not determined until \code{\link[recipes:prep]{recipes::prep()}}
 is called.}
 
@@ -49,8 +61,11 @@ An updated version of \code{recipe} with the new step added to the
 sequence of any existing operations.
 }
 \description{
-\code{step_predictor_desirability()} creates a \emph{specification} of a recipe step that will
-perform feature selection by ...
+\code{step_predictor_desirability()} creates a \emph{specification} of a recipe step
+that uses one or more "score" functions to measure how how much each
+predictor is related to the outcome value. These scores are combined into
+a composite value using user-specified \emph{desirability} functions and a
+proportion of the most desirable predictors are retained.
 }
 \details{
 This step ...
@@ -74,7 +89,7 @@ returned with columns \code{terms} and \code{id}:
 \section{Tuning Parameters}{
 This step has 1 tuning parameters:
 \itemize{
-\item \code{prop_terms}: Threshold (type: double, default: 0.9)
+\item \code{prop_terms}: Threshold (type: double, default: 0.5)
 }
 
 The underlying operation does not allow for case weights.
@@ -82,7 +97,48 @@ The underlying operation does not allow for case weights.
 
 \examples{
 library(recipes)
+library(desirability2)
 
-rec <- recipe(mpg ~ ., data = mtcars) |>
-  step_predictor_desirability(all_predictors())
+if (rlang::is_installed("modeldata")) {
+	# The `ad_data` has a binary outcome column ("Class") and mostly numeric
+	# predictors. For these, we score the predictors using an analysis of
+	# variance model where the predicor is the outcome and the outcome class
+	# defines the groups.
+	# There is also a single factor predictor ("Genotype") and we'll use
+	# Fisher's Exact test to score it. NOTE that for scores using hypothesis
+	# tests, the -log10(pvalue) is returned so that larger values are more
+	# important.
+
+	# The score_* objects here are from the filtro package. See Details above.
+	goals <-
+		desirability(
+			maximize(score_xtab_pval_fisher),
+			maximize(score_aov_pval)
+		)
+
+	rec <-
+		recipe(Class ~ ., data = modeldata::ad_data) |>
+		step_predictor_desirability(
+			all_predictors(),
+			score = goals,
+			prop_terms = 1/2
+		)
+	rec
+
+	# Now evaluate the predictors and rank them via desirability:
+	rec_trained <- prep(rec)
+	rec_trained
+
+	# Use the tidy() method to get the results:
+	predictor_scores <- tidy(rec, number = 1)
+	mean(predictor_scores$retained)
+	predictor_scores
+}
+}
+\references{
+Derringer, G. and Suich, R. (1980), Simultaneous Optimization of
+Several Response Variables. \emph{Journal of Quality Technology}, 12, 214-219.
+}
+\seealso{
+\code{\link[desirability2:desirability]{desirability2::desirability()}}
 }
