@@ -4,7 +4,7 @@
 ## usethis namespace: start
 #' @import recipes
 #' @import rlang
-#' @importFrom stats sd predict
+#' @importFrom stats sd predict as.formula
 #' @importFrom hardhat extract_fit_parsnip extract_postprocessor
 
 #' @importFrom ggplot2 autoplot
@@ -30,7 +30,9 @@ utils::globalVariables(
     "predictor",
     "ranking",
     "std_err",
-    "score"
+    "score",
+    ".d_overall",
+    "outcome"
   )
 )
 ## usethis namespace: end
