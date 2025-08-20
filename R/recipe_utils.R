@@ -34,12 +34,28 @@ pull_outcome_column_name <- function(x) {
 	outcome_name
 }
 
-compute_score <- function(score, args, form, data) {
-	fn <- find_score_object(score)
+check_weights <- function(object, weights) {
+	if (object@case_weights & !is.null(weights)) {
+		res <- weights
+	} else {
+		res <- NULL
+	}
+	res
+}
+
+compute_score <- function(score, args, form, data, weights = NULL) {
+	score_obj <- find_score_object(score)
+
+	# Process case weights
+	weights <- check_weights(score_obj, weights)
+	if (!is.null(weights)) {
+		args$case_weights <- weights
+	}
+
 	cl <- rlang::call2(
 		"fit",
 		.ns = "generics",
-		object = quote(fn),
+		object = quote(score_obj),
 		formula = quote(form),
 		data = quote(data)
 	)

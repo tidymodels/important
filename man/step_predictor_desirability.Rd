@@ -116,8 +116,9 @@ if (rlang::is_installed("modeldata")) {
 			maximize(score_aov_pval)
 		)
 
+ example_data <- modeldata::ad_data
 	rec <-
-		recipe(Class ~ ., data = modeldata::ad_data) |>
+		recipe(Class ~ ., data = example_data) |>
 		step_predictor_desirability(
 			all_predictors(),
 			score = goals,
@@ -130,9 +131,56 @@ if (rlang::is_installed("modeldata")) {
 	rec_trained
 
 	# Use the tidy() method to get the results:
-	predictor_scores <- tidy(rec, number = 1)
+	predictor_scores <- tidy(rec_trained, number = 1)
 	mean(predictor_scores$retained)
 	predictor_scores
+
+ # --------------------------------------------------------------------------
+
+# Case-weight example: use the hardhat package to create the appropriate type
+# of case weights. Here, we'll increase the weights for the minority class and
+# add them to the data frame.
+
+library(hardhat)
+
+example_weights <- example_data
+weights <- ifelse(example_data$Class == "Impaired", 5, 1)
+example_weights$weights <- importance_weights(weights)
+
+# To see if the scores can use case weights, load the filtro package and
+# check the `case_weights` property:
+
+library(filtro)
+
+score_xtab_pval_fisher@case_weights
+score_aov_pval@case_weights
+
+# The recipe will automatically find the case weights and will
+# not treat them as predictors.
+rec_wts <-
+	recipe(Class ~ ., data = example_weights) |>
+	step_predictor_desirability(
+		all_predictors(),
+		score = goals,
+		prop_terms = 1/2
+	) |>
+	prep()
+rec_wts
+
+predictor_scores_wts <-
+	tidy(rec_wts, number = 1) |>
+	select(terms, .d_overall_weighted = .d_overall)
+
+library(dplyr)
+library(ggplot2)
+
+# The selection did not substantually change with these case weights
+full_join(predictor_scores, predictor_scores_wts, by = "terms") |>
+	ggplot(aes(.d_overall, .d_overall_weighted)) +
+	geom_abline(col = "darkgreen", lty = 2) +
+	geom_point(alpha = 1 / 2) +
+	coord_fixed(ratio = 1) +
+	labs(x = "Unweighted", y = "Class Weighted")
 }
 }
 \references{
