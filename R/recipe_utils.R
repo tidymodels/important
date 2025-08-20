@@ -12,11 +12,54 @@ extract_score_names <- function(x, call = rlang::caller_env()) {
 		}
 		x <- rlang::quo_get_expr(x)
 	}
-	res <- unique(all.vars(x))
-	res <- grep("^score_", res, value = TRUE)
+	res <- all.vars(x)
+	check_score_names(res, call)
+}
+
+check_score_names <- function(x, call) {
+	x <- unique(x)
+	res <- grep("^score_", x, value = TRUE)
 	if (length(res) == 0) {
 		cli::cli_abort("No score objects were found in {.arg score}.", call = call)
 	}
 	res
 }
 
+pull_outcome_column_name <- function(x) {
+	outcome_name <- x$variable[x$role == "outcome"]
+	num_outcomes <- length(outcome_name)
+	if (num_outcomes != 1) {
+		cli::cli_abort("One column should have a role of {.val outcome}.")
+	}
+	outcome_name
+}
+
+compute_score <- function(score, args, form, data) {
+	fn <- find_score_object(score)
+	cl <- rlang::call2(
+		"fit",
+		.ns = "generics",
+		object = quote(fn),
+		formula = quote(form),
+		data = quote(data)
+	)
+	cl <- rlang::call_modify(cl, !!!args)
+
+	res <- try(rlang::eval_tidy(cl), silent = TRUE)
+
+	# if error return all NA
+	res
+}
+
+# Temporary solution
+find_score_object <- function(x) {
+	utils::getFromNamespace(x, "filtro")
+}
+
+update_prop <- function(num_cols, prop) {
+	min_prop <- 1/num_cols
+	if (prop < min_prop) {
+		prop <- min_prop + 2 * .Machine$double.eps
+	}
+	prop
+}
