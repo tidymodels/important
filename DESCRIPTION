@@ -24,7 +24,7 @@ Imports:
     filtro,
     generics,
     ggplot2,
-    hardhat (>= 1.4.0.9002),
+    hardhat (>= 1.4.2),
     purrr,
     rlang (>= 1.1.0),
     tibble,
