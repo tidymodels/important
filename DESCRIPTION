@@ -8,11 +8,13 @@ Authors@R: c(
            comment = c(ROR = "03wc8by49"))
   )
 Description: Interfaces for choosing important predictors in supervised
-    regression, classification, and censored regression models. Permuted 
-    importance scores (Biecek and Burzykowski (2021) 
-    <doi:10.1201/9780429027192>) can be computed for 'tidymodels' model fits. 
+    regression, classification, and censored regression models. Permuted
+    importance scores (Biecek and Burzykowski (2021)
+    <doi:10.1201/9780429027192>) can be computed for 'tidymodels' model
+    fits.
 License: MIT + file LICENSE
-URL: https://github.com/tidymodels/important
+URL: https://important.tidymodels.org/,
+    https://github.com/tidymodels/important
 BugReports: https://github.com/tidymodels/important/issues
 Depends: 
     R (>= 4.1.0)
@@ -21,7 +23,7 @@ Imports:
     dplyr,
     generics,
     ggplot2,
-    hardhat (>= 1.4.0.9002),
+    hardhat (>= 1.4.1),
     purrr,
     rlang,
     tibble,

@@ -45,37 +45,26 @@ A \code{ggplot2} object.
 Visualize importance scores
 }
 \examples{
-if (rlang::is_installed(c("modeldata", "recipes", "workflows", "parsnip"))) {
-  library(modeldata)
-  library(recipes)
-  library(workflows)
-  library(dplyr)
-  library(parsnip)
+# Pre-computed results. See code at
+system.file("make_imp_example.R", package = "important")
 
-	data(ad_data, package = "modeldata")
+# Load the results
+load(system.file("imp_examples.RData", package = "important"))
 
-	ad_rec <-
-		recipe(Class ~ ., data = ad_data) |>
-		step_pca(all_numeric_predictors(), -male, -age, num_comp = 5) |>
-		step_dummy(all_factor_predictors()) |>
-		step_zv(all_predictors())
+# A classification model with two classes and highly correlated predictors.
+# To preprocess them, PCA feature extraction is used.
+#
+# Let’s first view the importance in terms of the original predictor set
+# using 50 permutations:
 
-	ad_wflow <- workflow(ad_rec, logistic_reg())
-	ad_fit <- fit(ad_wflow, data = ad_data)
+imp_orig
 
-	###
+autoplot(imp_orig, top = 10)
 
-	set.seed(392)
-	imp_orig <- importance_perm(ad_fit, data = ad_data, type = "original", times = 3)
+# Now assess the importance in terms of the PCA components
 
-	autoplot(imp_orig, top = 10)
+imp_derv
 
-	###
-
-	set.seed(392)
-	imp_derv <- importance_perm(ad_fit, data = ad_data, type = "derived", times = 3)
-
-	autoplot(imp_derv)
-	autoplot(imp_derv, metric = "brier_class", type = "difference")
-}
+autoplot(imp_derv)
+autoplot(imp_derv, metric = "brier_class", type = "difference")
 }

@@ -33,9 +33,9 @@ The important package has a succinct interface for obtaining estimates of predic
 You can install the development version of important from [GitHub](https://github.com/) with:
 
 ``` r
-# Not yet!
-# install.packages("devtools")
-devtools::install_github("tidymodels/important")
+install.packages("devtools")
+# or
+pak::pak("tidymodels/important")
 ```
 
 ## Do we really need another package that computes variable importances?
