@@ -43,7 +43,8 @@
       
       -- Inputs 
       Number of variables by role
-      predictor: 11
+      outcome:    1
+      predictor: 10
       
       -- Operations 
       * Feature selection on: all_predictors()
@@ -58,13 +59,14 @@
       
       -- Inputs 
       Number of variables by role
-      predictor: 11
+      outcome:    1
+      predictor: 10
       
       -- Training information 
       Training data contained 32 data points and no incomplete rows.
       
       -- Operations 
-      * Feature selection on: <none> | Trained
+      * Feature selection on: cyl, disp, hp, wt | Trained
 
 # bad args
 
@@ -74,5 +76,5 @@
     Condition
       Error in `step_predictor_retain()`:
       Caused by error in `prep()`:
-      ! `threshold` must be a number between 0 and 1, not the number 2.
+      ! The following argument was specified but does not exist: `threshold`.
 

@@ -1,4 +1,96 @@
-skip()
+test_that("step works", {
+  rec <- recipe(mpg ~ ., data = mtcars) |>
+    step_predictor_retain(
+      all_predictors(),
+      score = abs(cor_pearson) >= 0.75 & abs(cor_spearman) >= 0.6
+    )
+
+  prepped <- prep(rec)
+  res_bake <- bake(prepped, mtcars)
+  res_tidy <- tidy(prepped, 1)
+
+  cor_pearson_res <- filtro::score_cor_pearson |>
+    filtro::fit(mpg ~ ., data = mtcars)
+  cor_spearman_res <- filtro::score_cor_spearman |>
+    filtro::fit(mpg ~ ., data = mtcars)
+
+  exp <- filtro::fill_safe_values(list(
+    cor_pearson_res,
+    cor_spearman_res
+  )) |>
+    dplyr::filter(abs(cor_pearson) >= 0.75 & abs(cor_spearman) >= 0.6) |>
+    dplyr::pull(predictor)
+
+  expect_identical(
+    sort(setdiff(names(mtcars), names(res_bake))),
+    sort(exp)
+  )
+  expect_identical(
+    sort(res_tidy$terms),
+    sort(exp)
+  )
+})
+
+test_that("step allows for no removals", {
+  rec <- recipe(mpg ~ ., data = mtcars) |>
+    step_predictor_retain(
+      all_predictors(),
+      score = abs(cor_pearson) >= 0.99 & abs(cor_spearman) >= 0.99
+    )
+
+  prepped <- prep(rec)
+  res_bake <- bake(prepped, mtcars)
+  res_tidy <- tidy(prepped, 1)
+
+  cor_pearson_res <- filtro::score_cor_pearson |>
+    filtro::fit(mpg ~ ., data = mtcars)
+  cor_spearman_res <- filtro::score_cor_spearman |>
+    filtro::fit(mpg ~ ., data = mtcars)
+
+  exp <- filtro::fill_safe_values(list(
+    cor_pearson_res,
+    cor_spearman_res
+  )) |>
+    dplyr::filter(abs(cor_pearson) >= 0.99 & abs(cor_spearman) >= 0.99) |>
+    dplyr::pull(predictor)
+
+  expect_identical(
+    sort(setdiff(names(mtcars), names(res_bake))),
+    sort(exp)
+  )
+  expect_identical(
+    sort(res_tidy$terms),
+    sort(exp)
+  )
+})
+
+test_that("allows for one score", {
+  rec <- recipe(mpg ~ ., data = mtcars) |>
+    step_predictor_retain(
+      all_predictors(),
+      score = abs(cor_pearson) >= 0.7
+    )
+
+  prepped <- prep(rec)
+  res_bake <- bake(prepped, mtcars)
+  res_tidy <- tidy(prepped, 1)
+
+  cor_pearson_res <- filtro::score_cor_pearson |>
+    filtro::fit(mpg ~ ., data = mtcars)
+
+  exp <- cor_pearson_res@results |>
+    dplyr::filter(abs(score) >= 0.7) |>
+    dplyr::pull(predictor)
+
+  expect_identical(
+    sort(setdiff(names(mtcars), names(res_bake))),
+    sort(exp)
+  )
+  expect_identical(
+    sort(res_tidy$terms),
+    sort(exp)
+  )
+})
 
 # Infrastructure ---------------------------------------------------------------
 
@@ -47,22 +139,11 @@ test_that("empty selection tidy method works", {
 
 test_that("printing", {
   set.seed(1)
-  rec <- recipe(~., data = mtcars) |>
-    step_predictor_retain(all_predictors())
+  rec <- recipe(mpg ~ ., data = mtcars) |>
+    step_predictor_retain(all_predictors(), score = abs(cor_pearson) >= 0.75)
 
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
-})
-
-test_that("tunable is setup to work with extract_parameter_set_dials", {
-  skip_if_not_installed("dials")
-  rec <- recipe(~., data = mtcars) |>
-    step_predictor_retain(all_predictors(), threshold = hardhat::tune())
-
-  params <- extract_parameter_set_dials(rec)
-
-  expect_s3_class(params, "parameters")
-  expect_identical(nrow(params), 1L)
 })
 
 test_that("bad args", {
@@ -76,8 +157,11 @@ test_that("bad args", {
 
 test_that("0 and 1 rows data work in bake method", {
   data <- mtcars
-  rec <- recipe(~., data) |>
-    step_predictor_retain(all_numeric_predictors()) |>
+  rec <- recipe(mpg ~ ., data) |>
+    step_predictor_retain(
+      all_numeric_predictors(),
+      score = abs(cor_pearson) >= 0.75
+    ) |>
     prep()
 
   expect_identical(
