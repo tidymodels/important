@@ -4,6 +4,8 @@ suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(purrr))
 suppressPackageStartupMessages(library(parsnip)) # imported by tune
 suppressPackageStartupMessages(library(yardstick)) # imported by tune
+suppressPackageStartupMessages(library(filtro))
+suppressPackageStartupMessages(library(desirability2))
 
 # ------------------------------------------------------------------------------
 # regression examples
