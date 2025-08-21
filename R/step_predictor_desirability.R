@@ -1,54 +1,62 @@
-#' Feature Selection
+#'Feature Selection
 #'
 #' `step_predictor_desirability()` creates a *specification* of a recipe step
-#' that uses one or more "score" functions to measure how how much each
-#' predictor is related to the outcome value. These scores are combined into
-#' a composite value using user-specified _desirability_ functions and a
-#' proportion of the most desirable predictors are retained.
+#' that uses one or more "score" functions to measure how how much each predictor
+#' is related to the outcome value. These scores are combined into a composite
+#' value using user-specified _desirability_ functions and a proportion of the
+#' most desirable predictors are retained.
 #'
 #' @inheritParams recipes::step_center
 #' @param score An object produced by [desirability2::desirability()] that uses
 #'   one or more score functions from the \pkg{filtro} package. See the Details
 #'   and Examples sections below. This argument *should be named* when used.
 #' @param prop_terms The proportion of predictors that should be retained when
-#'   ordered by overall desirability.
+#'   ordered by overall desirability. A value of [hardhat::tune()] can also be
+#'   used.
 #' @param update_prop A logical: should `prop_terms` be updated so that at least
 #'   one predictor will be retained?
 #' @param removals A character string that contains the names of predictors that
 #'   should be removed. These values are not determined until [recipes::prep()]
 #'   is called.
 #' @param results A data frame of score and desirability values for each
-#'   predictor evaluated. These values are not determined until
-#'   [recipes::prep()] is called.
-#' @return An updated version of `recipe` with the new step added to the
-#'   sequence of any existing operations.
+#'   predictor evaluated. These values are not determined until [recipes::prep()]
+#'   is called.
 #' @export
 #'
 #' @details
 #'
-#' This step ...
+#' This recipe step can compute one or more scores and conduct a simultaneous
+#' selection of the top predictors using _desirability functions_. These are
+#' functions that, for some type of goal, translate the score's values to a
+#' scale of `[0, 1]`,  where 1.0 is the best result and 0.0 is unacceptable.
+#' Once we have these for each score, the overall desirability is computed
+#' using the geometric mean of the individual desirabilities. See the examples
+#' in [desirability2::d_overall()] and [desirability2::d_max()].
 #'
-#' This step can potentially remove columns from the data set. This may
-#' cause issues for subsequent steps in your recipe if the missing columns are
-#' specifically referenced by name. To avoid this, see the advice in the
-#' _Tips for saving recipes and filtering columns_ section of
-#' [recipes::selections].
+#' To define desirabilities, use [desirability2::desirability()] function to
+#' define _goals_ for each score and pass that to the recipe in the `score`
+#' argument.
 #'
-#' # Tidying
+#' Some important notes:
 #'
-#' When you [`tidy()`][recipes::tidy.recipe] this step, a tibble::tibble is
-#' returned with columns `terms` and `id`:
+#' - Scores that are p-values are automatically transformed by \pkg{filtro} to
+#'   be in the format `-log10(pvalue)` so that a p-value of 0.1 is converted to
+#'   1.0. For these, use the `maximize()` goal.
 #'
-#' \describe{
-#'   \item{terms}{character, the selectors or variables selected to be removed}
-#'   \item{id}{character, id of this step}
-#' }
+#' - Other scores are also transformed in the data. For example, the correlation
+#'   scores given to the recipe step are in absolute value format. See the
+#'   \pkg{filtro} documentation for each score.
 #'
-#' ```{r, echo = FALSE, results="asis"}
-#' step <- "step_predictor_desirability"
-#' result <- knitr::knit_child("man/rmd/tunable-args.Rmd")
-#' cat(result)
-#' ```
+#'  - You can use some in-line functions using base R functions. For example,
+#'    `maximize(max(score_cor_spearman))`.
+#'
+#' - If a predictor cannot be computed for all scores, it is given a "fallback
+#'   value" that will prevent it from being excluded for this reason.
+#'
+#' This step can potentially remove columns from the data set. This may cause
+#' issues for subsequent steps in your recipe if the missing columns are
+#' specifically referenced by name. To avoid this, see the advice in the _Tips
+#' for saving recipes and filtering columns_ section of [recipes::selections].
 #'
 #' ## Ties
 #'
@@ -59,16 +67,35 @@
 #' ## Case Weights
 #'
 #' Case weights can be used by some scoring functions. To learn more, load the
-#' \pkg{filtro} package and check the `case_weights` property of the score
-#' object (see Examples below). For a recipe, use one of the tidymodels case
-#' weight functions such as [hardhat::importance_weights()] or
-#' [hardhat:: frequency_weights()], to assign the correct data type to the
-#' vector of case weights. A recipe will then interpret that class to be a case
-#' weight (and no other role). A full example is below.
+#' \pkg{filtro} package and check the `case_weights` property of the score object
+#' (see Examples below). For a recipe, use one of the tidymodels case weight
+#' functions such as [hardhat::importance_weights()] or
+#' [hardhat::frequency_weights], to assign the correct data type to the vector of case
+#' weights. A recipe will then interpret that class to be a case weight (and no
+#' other role). A full example is below.
+#'
+#' ## Tidy method
+#'
+#' For a trained recipe, the `tidy()` method will return a tibble with columns
+#' `terms` (the predictor names), `id`, columns for the estimated scores, and
+#' the desirability results. The desirability columns will have the same name
+#' as the scores with an additional prefix of `.d_`. The overall desirability
+#' column is called `.d_overall`.
+#'
+#' @return An updated version of `recipe` with the new step added to the
+#'  sequence of any existing operations. When you
+#'  [`tidy()`][recipes::tidy.recipe] this step, a tibble::tibble is returned
+#'  with columns `terms` and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected to be removed}
+#'   \item{id}{character, id of this step}
+#' }
+#' Once trained, additional columns are included (see Details section).
 #'
 #' @seealso [desirability2::desirability()]
 #' @references Derringer, G. and Suich, R. (1980), Simultaneous Optimization of
-#' Several Response Variables. _Journal of Quality Technology_, 12, 214-219.
+#'  Several Response Variables. _Journal of Quality Technology_, 12, 214-219.
 #' @examples
 #' library(recipes)
 #'
@@ -84,11 +111,11 @@
 #'
 #'  library(desirability2)
 #' 	# The score_* objects here are from the filtro package. See Details above.
-#' 	goals <-
-#' 		desirability(
-#' 			maximize(score_xtab_pval_fisher),
-#' 			maximize(score_aov_pval)
-#' 		)
+#'  goals <-
+#'    desirability(
+#'      maximize(score_xtab_pval_fisher),
+#'      maximize(score_aov_pval)
+#'    )
 #'
 #'  example_data <- modeldata::ad_data
 #' 	rec <-
@@ -111,50 +138,50 @@
 #'
 #'  # --------------------------------------------------------------------------
 #'
-#'	# Case-weight example: use the hardhat package to create the appropriate type
-#'	# of case weights. Here, we'll increase the weights for the minority class and
-#'	# add them to the data frame.
+#'  # Case-weight example: use the hardhat package to create the appropriate type
+#'  # of case weights. Here, we'll increase the weights for the minority class and
+#'  # add them to the data frame.
 #'
-#'	library(hardhat)
+#'  library(hardhat)
 #'
-#'	example_weights <- example_data
-#'	weights <- ifelse(example_data$Class == "Impaired", 5, 1)
-#'	example_weights$weights <- importance_weights(weights)
+#'  example_weights <- example_data
+#'  weights <- ifelse(example_data$Class == "Impaired", 5, 1)
+#'  example_weights$weights <- importance_weights(weights)
 #'
-#'	# To see if the scores can use case weights, load the filtro package and
-#'	# check the `case_weights` property:
+#'  # To see if the scores can use case weights, load the filtro package and
+#'  # check the `case_weights` property:
 #'
-#'	library(filtro)
+#'  library(filtro)
 #'
-#'	score_xtab_pval_fisher@case_weights
-#'	score_aov_pval@case_weights
+#'  score_xtab_pval_fisher@case_weights
+#'  score_aov_pval@case_weights
 #'
-#'	# The recipe will automatically find the case weights and will
-#'	# not treat them as predictors.
-#'	rec_wts <-
-#'		recipe(Class ~ ., data = example_weights) |>
-#'		step_predictor_desirability(
-#'			all_predictors(),
-#'			score = goals,
-#'			prop_terms = 1/2
-#'		) |>
-#'		prep()
-#'	rec_wts
+#'  # The recipe will automatically find the case weights and will
+#'  # not treat them as predictors.
+#'  rec_wts <-
+#'  	recipe(Class ~ ., data = example_weights) |>
+#'  	step_predictor_desirability(
+#'  		all_predictors(),
+#'  		score = goals,
+#'  		prop_terms = 1/2
+#'  	) |>
+#'  	prep()
+#'  rec_wts
 #'
-#'	predictor_scores_wts <-
-#'		tidy(rec_wts, number = 1) |>
-#'		select(terms, .d_overall_weighted = .d_overall)
+#'  predictor_scores_wts <-
+#'  	tidy(rec_wts, number = 1) |>
+#'  	select(terms, .d_overall_weighted = .d_overall)
 #'
-#'	library(dplyr)
-#'	library(ggplot2)
+#'  library(dplyr)
+#'  library(ggplot2)
 #'
-#'	# The selection did not substantually change with these case weights
-#'	full_join(predictor_scores, predictor_scores_wts, by = "terms") |>
-#'		ggplot(aes(.d_overall, .d_overall_weighted)) +
-#'		geom_abline(col = "darkgreen", lty = 2) +
-#'		geom_point(alpha = 1 / 2) +
-#'		coord_fixed(ratio = 1) +
-#'		labs(x = "Unweighted", y = "Class Weighted")
+#'  # The selection did not substantually change with these case weights
+#'  full_join(predictor_scores, predictor_scores_wts, by = "terms") |>
+#'  	ggplot(aes(.d_overall, .d_overall_weighted)) +
+#'  	geom_abline(col = "darkgreen", lty = 2) +
+#'  	geom_point(alpha = 1 / 2) +
+#'  	coord_fixed(ratio = 1) +
+#'  	labs(x = "Unweighted", y = "Class Weighted")
 #' }
 step_predictor_desirability <- function(
   recipe,
@@ -265,7 +292,6 @@ prep.step_predictor_desirability <- function(x, training, info = NULL, ...) {
   fm <- paste(outcome_name, "~ .")
   fm <- stats::as.formula(fm)
 
-  # TODO ooof... how to handle case weights?
   score_objs <-
   	purrr::map(
   		score_names,
@@ -339,8 +365,6 @@ tidy.step_predictor_desirability <- function(x, ...) {
   res
 }
 
-# TODO make a new dials parameter for prop_terms
-
 #' @export
 tunable.step_predictor_desirability <- function(x, ...) {
   tibble::tibble(
@@ -352,4 +376,9 @@ tunable.step_predictor_desirability <- function(x, ...) {
     component = "step_predictor_desirability",
     component_id = x$id
   )
+}
+
+#' @export
+required_pkgs.step_predictor_desirability <- function(x, ...) {
+	c("important", "filtro", "desirability2")
 }
