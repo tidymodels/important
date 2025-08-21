@@ -1,10 +1,10 @@
 #' Feature Selection
 #'
-#' `step_select_3()` creates a *specification* of a recipe step that will
+#' `step_predictor_retain()` creates a *specification* of a recipe step that will
 #' perform feature selection by ...
 #'
 #' @inheritParams recipes::step_center
-#' @param threshold ...
+#' @param score ...
 #' @param removals A character string that contains the names of columns that
 #'   should be removed. These values are not determined until [recipes::prep()]
 #'   is called.
@@ -32,42 +32,39 @@
 #'   \item{id}{character, id of this step}
 #' }
 #'
-#' ```{r, echo = FALSE, results="asis"}
-#' step <- "step_select_3"
-#' result <- knitr::knit_child("man/rmd/tunable-args.Rmd")
-#' cat(result)
-#' ```
-#'
 #' The underlying operation does not allow for case weights.
 #'
 #' @examples
 #' library(recipes)
 #'
 #' rec <- recipe(mpg ~ ., data = mtcars) |>
-#'   step_select_3(all_predictors())
+#'   step_predictor_retain(
+#'     all_predictors(),
+#'     score = cor_pearson >= 0.75 & imp_rf_oblique >= 0
+#'   )
 #'
 #' prepped <- prep(rec)
 #'
 #' bake(prepped, mtcars)
 #'
 #' tidy(prepped, 1)
-step_select_3 <- function(
+step_predictor_retain <- function(
   recipe,
   ...,
+  score,
   role = NA,
   trained = FALSE,
-  threshold = 0.9,
   removals = NULL,
   skip = FALSE,
-  id = rand_id("select_3")
+  id = rand_id("predictor_retain")
 ) {
   add_step(
     recipe,
-    step_select_3_new(
+    step_predictor_retain_new(
       terms = enquos(...),
       role = role,
       trained = trained,
-      threshold = threshold,
+      score = rlang::enexpr(score),
       removals = removals,
       skip = skip,
       id = id,
@@ -76,23 +73,23 @@ step_select_3 <- function(
   )
 }
 
-step_select_3_new <-
+step_predictor_retain_new <-
   function(
     terms,
     role,
     trained,
-    threshold,
+    score,
     removals,
     skip,
     id,
     case_weights
   ) {
     step(
-      subclass = "select_3",
+      subclass = "predictor_retain",
       terms = terms,
       role = role,
       trained = trained,
-      threshold = threshold,
+      score = score,
       removals = removals,
       skip = skip,
       id = id,
@@ -101,10 +98,9 @@ step_select_3_new <-
   }
 
 #' @export
-prep.step_select_3 <- function(x, training, info = NULL, ...) {
+prep.step_predictor_retain <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer"))
-  check_number_decimal(x$threshold, min = 0, max = 1, arg = "threshold")
 
   wts <- get_case_weights(info, training)
   were_weights_used <- are_weights_used(wts, unsupervised = TRUE)
@@ -113,16 +109,16 @@ prep.step_select_3 <- function(x, training, info = NULL, ...) {
   }
 
   if (length(col_names) > 1) {
-    filter <- character(0)
+    filter <- calculate_predictor_retain(x$score, data = training[, col_names])
   } else {
     filter <- character(0)
   }
 
-  step_select_3_new(
+  step_predictor_retain_new(
     terms = x$terms,
     role = x$role,
     trained = TRUE,
-    threshold = x$threshold,
+    score = x$score,
     removals = filter,
     skip = x$skip,
     id = x$id,
@@ -130,14 +126,87 @@ prep.step_select_3 <- function(x, training, info = NULL, ...) {
   )
 }
 
+# TODO: how to pass opts and or tune objects? Internal score set?
+
+# Assumes `data` has all predictors and the outcome columns (only)
+calculate_predictor_retain <- function(
+  xpr,
+  outcome = character(0),
+  data,
+  opts = list()
+) {
+  all_scores <- unique(all.vars(xpr))
+  all_score_functions <- paste0("score_", all_scores)
+
+  # ------------------------------------------------------------------------------
+  # Find all known class_{score} and check against list
+
+  # ------------------------------------------------------------------------------
+  # Process any options
+
+  opts <- make_opt_list(opts, all_scores)
+
+  # ------------------------------------------------------------------------------
+
+  fm <- as.formula(paste(outcome, "~ ."))
+
+  # ------------------------------------------------------------------------------
+
+  # Get list of args for each scoring method and use map2()
+  score_res <- purrr::map2(
+    all_score_functions,
+    opts,
+    compute_score,
+    form = fm,
+    data = data
+  )
+  names(score_res) <- all_scores
+
+  # ------------------------------------------------------------------------------
+  # Fill in missings
+
+  score_df <- # save for tidy method
+    score_res |>
+    filtro::fill_safe_values()
+
+  # ------------------------------------------------------------------------------
+  # filter predictors
+
+  final_res <- score_df |> dplyr::filter(!!xpr) |> purrr::pluck("predictor")
+
+  if (length(final_res) == 0) {
+    # final_res <- fallback_pred()
+  }
+  final_res
+}
+
+fallback_pred <- function(scores) {
+  # get individual ranks
+  # save best average rank
+}
+
+make_opt_list <- function(opts, scores) {
+  res <- purrr::map(scores, ~ list())
+  names(res) <- scores
+  score_opts <- intersect(scores, names(opts))
+  for (i in score_opts) {
+    res[[i]] <- opts[[i]]
+  }
+  res
+}
+
 #' @export
-bake.step_select_3 <- function(object, new_data, ...) {
+bake.step_predictor_retain <- function(object, new_data, ...) {
   new_data <- recipes_remove_cols(new_data, object)
   new_data
 }
 
 #' @export
-print.step_select_3 <- function(x, width = max(20, options()$width - 36), ...) {
+print.step_predictor_retain <- function(
+  x,
+  width = max(20, options()$width - 36),
+  ...
+) {
   title <- "Feature selection on "
   print_step(
     x$removals,
@@ -152,7 +221,7 @@ print.step_select_3 <- function(x, width = max(20, options()$width - 36), ...) {
 
 #' @usage NULL
 #' @export
-tidy.step_select_3 <- function(x, ...) {
+tidy.step_predictor_retain <- function(x, ...) {
   if (is_trained(x)) {
     res <- tibble::tibble(terms = unname(x$removals))
   } else {
@@ -161,17 +230,4 @@ tidy.step_select_3 <- function(x, ...) {
   }
   res$id <- x$id
   res
-}
-
-#' @export
-tunable.step_select_3 <- function(x, ...) {
-  tibble::tibble(
-    name = "threshold",
-    call_info = list(
-      list(pkg = "dials", fun = "threshold")
-    ),
-    source = "recipe",
-    component = "step_select_3",
-    component_id = x$id
-  )
 }
