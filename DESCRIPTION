@@ -47,7 +47,8 @@ Suggests:
     testthat (>= 3.0.0),
     yardstick
 Remotes:
-    tidymodels/desirability2
+    tidymodels/desirability2,
+    tidymodels/filtro
 Config/Needs/website: tidyverse/tidytemplate, tidymodels
 Config/testthat/edition: 3
 Config/usethis/last-upkeep: 2025-06-09
