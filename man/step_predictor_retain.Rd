@@ -76,7 +76,7 @@ library(recipes)
 rec <- recipe(mpg ~ ., data = mtcars) |>
   step_predictor_retain(
     all_predictors(),
-    score = cor_pearson >= 0.75 & imp_rf_oblique >= 0
+    score = cor_pearson >= 0.75 & cor_spearman >= 0.75
   )
 
 prepped <- prep(rec)
