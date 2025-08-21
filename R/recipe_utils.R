@@ -19,6 +19,7 @@ check_score_names <- function(x, call) {
 	res
 }
 
+# TODO this should go into recipes
 pull_outcome_column_name <- function(x) {
 	outcome_name <- x$variable[x$role == "outcome"]
 	num_outcomes <- length(outcome_name)

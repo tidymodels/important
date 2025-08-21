@@ -91,15 +91,29 @@ This step has 1 tuning parameters:
 \itemize{
 \item \code{prop_terms}: Threshold (type: double, default: 0.5)
 }
+\subsection{Ties}{
 
-The underlying operation does not allow for case weights.
+Note that \code{dplyr::slice_max()} with the argument \code{with_ties = TRUE } is used
+to select predictors. If there are many ties in overall desirability, the
+proportion selected can be larger than the value given to \code{prep_terms()}.
+}
+
+\subsection{Case Weights}{
+
+Case weights can be used by some scoring functions. To learn more, load the
+\pkg{filtro} package and check the \code{case_weights} property of the score
+object (see Examples below). For a recipe, use one of the tidymodels case
+weight functions such as \code{\link[hardhat:importance_weights]{hardhat::importance_weights()}} or
+\code{\link[hardhat:frequency_weights]{hardhat:: frequency_weights()}}, to assign the correct data type to the
+vector of case weights. A recipe will then interpret that class to be a case
+weight (and no other role). A full example is below.
+}
 }
 
 \examples{
 library(recipes)
-library(desirability2)
 
-if (rlang::is_installed("modeldata")) {
+if (rlang::is_installed(c("modeldata", "desirability2"))) {
 	# The `ad_data` has a binary outcome column ("Class") and mostly numeric
 	# predictors. For these, we score the predictors using an analysis of
 	# variance model where the predicor is the outcome and the outcome class
@@ -109,6 +123,7 @@ if (rlang::is_installed("modeldata")) {
 	# tests, the -log10(pvalue) is returned so that larger values are more
 	# important.
 
+ library(desirability2)
 	# The score_* objects here are from the filtro package. See Details above.
 	goals <-
 		desirability(

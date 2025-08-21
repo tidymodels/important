@@ -50,16 +50,29 @@
 #' cat(result)
 #' ```
 #'
-#' The underlying operation does not allow for case weights.
+#' ## Ties
+#'
+#' Note that `dplyr::slice_max()` with the argument `with_ties = TRUE ` is used
+#' to select predictors. If there are many ties in overall desirability, the
+#' proportion selected can be larger than the value given to `prep_terms()`.
+#'
+#' ## Case Weights
+#'
+#' Case weights can be used by some scoring functions. To learn more, load the
+#' \pkg{filtro} package and check the `case_weights` property of the score
+#' object (see Examples below). For a recipe, use one of the tidymodels case
+#' weight functions such as [hardhat::importance_weights()] or
+#' [hardhat:: frequency_weights()], to assign the correct data type to the
+#' vector of case weights. A recipe will then interpret that class to be a case
+#' weight (and no other role). A full example is below.
 #'
 #' @seealso [desirability2::desirability()]
 #' @references Derringer, G. and Suich, R. (1980), Simultaneous Optimization of
 #' Several Response Variables. _Journal of Quality Technology_, 12, 214-219.
 #' @examples
 #' library(recipes)
-#' library(desirability2)
 #'
-#' if (rlang::is_installed("modeldata")) {
+#' if (rlang::is_installed(c("modeldata", "desirability2"))) {
 #' 	# The `ad_data` has a binary outcome column ("Class") and mostly numeric
 #' 	# predictors. For these, we score the predictors using an analysis of
 #' 	# variance model where the predicor is the outcome and the outcome class
@@ -69,6 +82,7 @@
 #' 	# tests, the -log10(pvalue) is returned so that larger values are more
 #' 	# important.
 #'
+#'  library(desirability2)
 #' 	# The score_* objects here are from the filtro package. See Details above.
 #' 	goals <-
 #' 		desirability(
@@ -211,6 +225,7 @@ step_predictor_desirability_new <-
 
 #' @export
 prep.step_predictor_desirability <- function(x, training, info = NULL, ...) {
+	rlang::check_installed("desirability2")
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer", "factor"))
   check_number_decimal(x$prop_terms, min = .Machine$double.eps, max = 1, arg = "prop_terms")
