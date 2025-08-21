@@ -98,8 +98,9 @@
 #'  Several Response Variables. _Journal of Quality Technology_, 12, 214-219.
 #' @examples
 #' library(recipes)
+#' library(desirability2)
 #'
-#' if (rlang::is_installed(c("modeldata", "desirability2"))) {
+#' if (rlang::is_installed("modeldata")) {
 #' 	# The `ad_data` has a binary outcome column ("Class") and mostly numeric
 #' 	# predictors. For these, we score the predictors using an analysis of
 #' 	# variance model where the predicor is the outcome and the outcome class
@@ -109,7 +110,6 @@
 #' 	# tests, the -log10(pvalue) is returned so that larger values are more
 #' 	# important.
 #'
-#'  library(desirability2)
 #' 	# The score_* objects here are from the filtro package. See Details above.
 #'  goals <-
 #'    desirability(

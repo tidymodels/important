@@ -21,6 +21,7 @@ Depends:
     recipes (>= 1.1.0)
 Imports: 
     cli,
+    desirability2 (>= 0.1.0.9000),
     dplyr,
     filtro,
     generics,
@@ -35,7 +36,6 @@ Imports:
     withr,
     workflows
 Suggests: 
-    desirability2 (>= 0.1.0.9000),
     censored,
     future,
     future.apply,
@@ -46,7 +46,7 @@ Suggests:
     survival,
     testthat (>= 3.0.0),
     yardstick
-Remote:
+Remotes:
     tidymodels/desirability2
 Config/Needs/website: tidyverse/tidytemplate, tidymodels
 Config/testthat/edition: 3
