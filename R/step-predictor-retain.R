@@ -108,8 +108,14 @@ prep.step_predictor_retain <- function(x, training, info = NULL, ...) {
     wts <- NULL
   }
 
+  outcome_name <- pull_outcome_column_name(info)
+
   if (length(col_names) > 1) {
-    filter <- calculate_predictor_retain(x$score, data = training[, col_names])
+    filter <- calculate_predictor_retain(
+      xpr = x$score,
+      outcome = outcome_name,
+      data = training[, c(outcome_name, col_names)]
+    )
   } else {
     filter <- character(0)
   }
