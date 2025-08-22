@@ -368,11 +368,19 @@ predictions <- function(wflow, new_data, type, eval_time) {
       wflow |>
       extract_fit_parsnip() |>
       augment(new_data = new_data, eval_time = eval_time)
-    use_post <- has_postprocessor(wflow)
-    if (use_post) {
-      post_proc <- extract_postprocessor(wflow)
-      preds <- predict(post_proc, preds)
-    }
+    check_post(wflow)
+    # For once tailor and tune 2.0 are rleeased
+    # if (FALSE) {
+    #   post_proc <- extract_postprocessor(wflow)
+    #   preds <- predict(post_proc, preds)
+    # }
   }
   preds
+}
+
+check_post <- function(x) {
+	if (!identical(names(x$post$actions), character(0))) {
+		cli::cli_abort("{.pkg important} does not currently support postprocessors.")
+	}
+	invisible(NULL)
 }

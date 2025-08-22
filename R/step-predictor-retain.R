@@ -1,0 +1,239 @@
+#' Feature Selection
+#'
+#' `step_predictor_retain()` creates a *specification* of a recipe step that will
+#' perform feature selection by ...
+#'
+#' @inheritParams recipes::step_center
+#' @param score ...
+#' @param removals A character string that contains the names of columns that
+#'   should be removed. These values are not determined until [recipes::prep()]
+#'   is called.
+#' @return An updated version of `recipe` with the new step added to the
+#'  sequence of any existing operations.
+#' @export
+#'
+#' @details
+#'
+#' This step ...
+#'
+#' This step can potentially remove columns from the data set. This may
+#' cause issues for subsequent steps in your recipe if the missing columns are
+#' specifically referenced by name. To avoid this, see the advice in the
+#' _Tips for saving recipes and filtering columns_ section of
+#' [recipes::selections].
+#'
+#' # Tidying
+#'
+#' When you [`tidy()`][recipes::tidy.recipe] this step, a tibble::tibble is
+#' returned with columns `terms` and `id`:
+#'
+#' \describe{
+#'   \item{terms}{character, the selectors or variables selected to be removed}
+#'   \item{id}{character, id of this step}
+#' }
+#'
+#' The underlying operation does not allow for case weights.
+#'
+#' @examples
+#' library(recipes)
+#'
+#' rec <- recipe(mpg ~ ., data = mtcars) |>
+#'   step_predictor_retain(
+#'     all_predictors(),
+#'     score = cor_pearson >= 0.75 & cor_spearman >= 0.75
+#'   )
+#'
+#' prepped <- prep(rec)
+#'
+#' bake(prepped, mtcars)
+#'
+#' tidy(prepped, 1)
+step_predictor_retain <- function(
+  recipe,
+  ...,
+  score,
+  role = NA,
+  trained = FALSE,
+  removals = NULL,
+  skip = FALSE,
+  id = rand_id("predictor_retain")
+) {
+  add_step(
+    recipe,
+    step_predictor_retain_new(
+      terms = enquos(...),
+      role = role,
+      trained = trained,
+      score = rlang::enexpr(score),
+      removals = removals,
+      skip = skip,
+      id = id,
+      case_weights = NULL
+    )
+  )
+}
+
+step_predictor_retain_new <-
+  function(
+    terms,
+    role,
+    trained,
+    score,
+    removals,
+    skip,
+    id,
+    case_weights
+  ) {
+    step(
+      subclass = "predictor_retain",
+      terms = terms,
+      role = role,
+      trained = trained,
+      score = score,
+      removals = removals,
+      skip = skip,
+      id = id,
+      case_weights = case_weights
+    )
+  }
+
+#' @export
+prep.step_predictor_retain <- function(x, training, info = NULL, ...) {
+  col_names <- recipes_eval_select(x$terms, training, info)
+  check_type(training[, col_names], types = c("double", "integer"))
+
+  wts <- get_case_weights(info, training)
+  were_weights_used <- are_weights_used(wts, unsupervised = TRUE)
+  if (isFALSE(were_weights_used)) {
+    wts <- NULL
+  }
+
+  outcome_name <- pull_outcome_column_name(info)
+
+  if (length(col_names) > 1) {
+    filter <- calculate_predictor_retain(
+      xpr = x$score,
+      outcome = outcome_name,
+      data = training[, c(outcome_name, col_names)]
+    )
+  } else {
+    filter <- character(0)
+  }
+
+  step_predictor_retain_new(
+    terms = x$terms,
+    role = x$role,
+    trained = TRUE,
+    score = x$score,
+    removals = filter,
+    skip = x$skip,
+    id = x$id,
+    case_weights = were_weights_used
+  )
+}
+
+# TODO: how to pass opts and or tune objects? Internal score set?
+
+# Assumes `data` has all predictors and the outcome columns (only)
+calculate_predictor_retain <- function(
+  xpr,
+  outcome = character(0),
+  data,
+  opts = list()
+) {
+  all_scores <- unique(all.vars(xpr))
+  all_score_functions <- paste0("score_", all_scores)
+
+  # ------------------------------------------------------------------------------
+  # Find all known class_{score} and check against list
+
+  # ------------------------------------------------------------------------------
+  # Process any options
+
+  opts <- make_opt_list(opts, all_scores)
+
+  # ------------------------------------------------------------------------------
+
+  fm <- as.formula(paste(outcome, "~ ."))
+
+  # ------------------------------------------------------------------------------
+
+  # Get list of args for each scoring method and use map2()
+  score_res <- purrr::map2(
+    all_score_functions,
+    opts,
+    compute_score,
+    form = fm,
+    data = data
+  )
+  names(score_res) <- all_scores
+
+  # ------------------------------------------------------------------------------
+  # Fill in missings
+
+  score_df <- # save for tidy method
+    score_res |>
+    filtro::fill_safe_values()
+
+  # ------------------------------------------------------------------------------
+  # filter predictors
+
+  final_res <- score_df |> dplyr::filter(!!xpr) |> purrr::pluck("predictor")
+
+  if (length(final_res) == 0) {
+    # final_res <- fallback_pred()
+  }
+  final_res
+}
+
+fallback_pred <- function(scores) {
+  # get individual ranks
+  # save best average rank
+}
+
+make_opt_list <- function(opts, scores) {
+  res <- purrr::map(scores, ~ list())
+  names(res) <- scores
+  score_opts <- intersect(scores, names(opts))
+  for (i in score_opts) {
+    res[[i]] <- opts[[i]]
+  }
+  res
+}
+
+#' @export
+bake.step_predictor_retain <- function(object, new_data, ...) {
+  new_data <- recipes_remove_cols(new_data, object)
+  new_data
+}
+
+#' @export
+print.step_predictor_retain <- function(
+  x,
+  width = max(20, options()$width - 36),
+  ...
+) {
+  title <- "Feature selection on "
+  print_step(
+    x$removals,
+    x$terms,
+    x$trained,
+    title,
+    width,
+    case_weights = x$case_weights
+  )
+  invisible(x)
+}
+
+#' @usage NULL
+#' @export
+tidy.step_predictor_retain <- function(x, ...) {
+  if (is_trained(x)) {
+    res <- tibble::tibble(terms = unname(x$removals))
+  } else {
+    term_names <- sel2char(x$terms)
+    res <- tibble::tibble(terms = term_names)
+  }
+  res$id <- x$id
+  res
+}

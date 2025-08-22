@@ -2,8 +2,10 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @importFrom stats sd predict
-#' @importFrom hardhat extract_fit_parsnip extract_postprocessor
+#' @import recipes
+#' @import rlang
+#' @importFrom stats sd predict as.formula
+#' @importFrom hardhat extract_fit_parsnip
 
 #' @importFrom ggplot2 autoplot
 #' @export
@@ -27,14 +29,12 @@ utils::globalVariables(
     "permuted",
     "predictor",
     "ranking",
-    "std_err"
+    "std_err",
+    "score",
+    ".d_overall",
+    "outcome",
+    "score_objs"
   )
 )
 ## usethis namespace: end
 NULL
-
-## From workflows
-# nocov start
-has_postprocessor <- function(x) has_postprocessor_tailor(x)
-has_postprocessor_tailor <- function(x) "tailor" %in% names(x$post$actions)
-# nocov end
