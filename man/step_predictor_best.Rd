@@ -7,9 +7,12 @@
 step_predictor_best(
   recipe,
   ...,
+  score,
   role = NA,
   trained = FALSE,
-  threshold = 0.9,
+  prop_terms = 0.5,
+  update_prop = TRUE,
+  results = NULL,
   removals = NULL,
   skip = FALSE,
   id = rand_id("predictor_best")
@@ -22,12 +25,22 @@ operations for this recipe.}
 \item{...}{One or more selector functions to choose variables for this step.
 See \code{\link[recipes:selections]{selections()}} for more details.}
 
+\item{score}{...}
+
 \item{role}{Not used by this step since no new variables are created.}
 
 \item{trained}{A logical to indicate if the quantities for preprocessing have
 been estimated.}
 
-\item{threshold}{...}
+\item{prop_terms}{The proportion of predictors that should be retained when
+ordered by overall desirability. A value of \code{\link[hardhat:tune]{hardhat::tune()}} can also be
+used.}
+
+\item{update_prop}{A logical: should \code{prop_terms} be updated so that at least
+one predictor will be retained?}
+
+\item{results}{Fitted filtro objects. These values are not determined until
+\code{\link[recipes:prep]{recipes::prep()}} is called.}
 
 \item{removals}{A character string that contains the names of columns that
 should be removed. These values are not determined until \code{\link[recipes:prep]{recipes::prep()}}
@@ -68,20 +81,11 @@ returned with columns \code{terms} and \code{id}:
 }
 }
 
-\section{Tuning Parameters}{
-This step has 1 tuning parameters:
-\itemize{
-\item \code{threshold}: Threshold (type: double, default: 0.9)
-}
-
-The underlying operation does not allow for case weights.
-}
-
 \examples{
 library(recipes)
 
 rec <- recipe(mpg ~ ., data = mtcars) |>
-  step_predictor_best(all_predictors())
+  step_predictor_best()
 
 prepped <- prep(rec)
 

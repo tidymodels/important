@@ -32,9 +32,9 @@ utils::globalVariables(
     "std_err",
     "score",
     ".d_overall",
-    "outcome"
+    "outcome",
+    "score_objs"
   )
 )
 ## usethis namespace: end
 NULL
-

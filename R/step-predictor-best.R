@@ -10,6 +10,8 @@
 #'   used.
 #' @param update_prop A logical: should `prop_terms` be updated so that at least
 #'   one predictor will be retained?
+#' @param results Fitted filtro objects. These values are not determined until
+#'   [recipes::prep()] is called.
 #' @param removals A character string that contains the names of columns that
 #'   should be removed. These values are not determined until [recipes::prep()]
 #'   is called.
@@ -40,6 +42,9 @@
 #' @examples
 #' library(recipes)
 #'
+#' rec <- recipe(mpg ~ ., data = mtcars) |>
+#'   step_predictor_best()
+#'
 #' prepped <- prep(rec)
 #'
 #' bake(prepped, mtcars)
@@ -53,6 +58,7 @@ step_predictor_best <- function(
   trained = FALSE,
   prop_terms = 0.5,
   update_prop = TRUE,
+  results = NULL,
   removals = NULL,
   skip = FALSE,
   id = rand_id("predictor_best")
@@ -66,6 +72,7 @@ step_predictor_best <- function(
       trained = trained,
       prop_terms = prop_terms,
       update_prop = update_prop,
+      results = results,
       removals = removals,
       skip = skip,
       id = id,
@@ -115,11 +122,14 @@ prep.step_predictor_best <- function(x, training, info = NULL, ...) {
     wts <- NULL
   }
 
-  # if (length(col_names) > 1) {
-  #   filter <- character(0)
-  # } else {
-  #   filter <- character(0)
-  # }
+  if (length(col_names) > 1) {
+    filter <- character(0)
+  } else {
+    filter <- character(0)
+  }
+
+  # TODO: generate these
+  score_objs <- NULL
 
   step_predictor_best_new(
     terms = x$terms,
