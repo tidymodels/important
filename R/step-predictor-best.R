@@ -4,7 +4,12 @@
 #' perform feature selection by ...
 #'
 #' @inheritParams recipes::step_center
-#' @param threshold ...
+#' @param score ...
+#' @param prop_terms The proportion of predictors that should be retained when
+#'   ordered by overall desirability. A value of [hardhat::tune()] can also be
+#'   used.
+#' @param update_prop A logical: should `prop_terms` be updated so that at least
+#'   one predictor will be retained?
 #' @param removals A character string that contains the names of columns that
 #'   should be removed. These values are not determined until [recipes::prep()]
 #'   is called.
@@ -32,19 +37,8 @@
 #'   \item{id}{character, id of this step}
 #' }
 #'
-#' ```{r, echo = FALSE, results="asis"}
-#' step <- "step_predictor_best"
-#' result <- knitr::knit_child("man/rmd/tunable-args.Rmd")
-#' cat(result)
-#' ```
-#'
-#' The underlying operation does not allow for case weights.
-#'
 #' @examples
 #' library(recipes)
-#'
-#' rec <- recipe(mpg ~ ., data = mtcars) |>
-#'   step_predictor_best(all_predictors())
 #'
 #' prepped <- prep(rec)
 #'
@@ -54,9 +48,11 @@
 step_predictor_best <- function(
   recipe,
   ...,
+  score,
   role = NA,
   trained = FALSE,
-  threshold = 0.9,
+  prop_terms = 0.5,
+  update_prop = TRUE,
   removals = NULL,
   skip = FALSE,
   id = rand_id("predictor_best")
@@ -65,9 +61,11 @@ step_predictor_best <- function(
     recipe,
     step_predictor_best_new(
       terms = enquos(...),
+      score = rlang::enexpr(score),
       role = role,
       trained = trained,
-      threshold = threshold,
+      prop_terms = prop_terms,
+      update_prop = update_prop,
       removals = removals,
       skip = skip,
       id = id,
@@ -79,9 +77,12 @@ step_predictor_best <- function(
 step_predictor_best_new <-
   function(
     terms,
+    score,
     role,
     trained,
-    threshold,
+    prop_terms,
+    update_prop = update_prop,
+    results,
     removals,
     skip,
     id,
@@ -90,9 +91,12 @@ step_predictor_best_new <-
     step(
       subclass = "predictor_best",
       terms = terms,
+      score = score,
       role = role,
       trained = trained,
-      threshold = threshold,
+      prop_terms = prop_terms,
+      update_prop = update_prop,
+      results = results,
       removals = removals,
       skip = skip,
       id = id,
@@ -104,7 +108,6 @@ step_predictor_best_new <-
 prep.step_predictor_best <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer"))
-  check_number_decimal(x$threshold, min = 0, max = 1, arg = "threshold")
 
   wts <- get_case_weights(info, training)
   were_weights_used <- are_weights_used(wts, unsupervised = TRUE)
@@ -112,17 +115,20 @@ prep.step_predictor_best <- function(x, training, info = NULL, ...) {
     wts <- NULL
   }
 
-  if (length(col_names) > 1) {
-    filter <- character(0)
-  } else {
-    filter <- character(0)
-  }
+  # if (length(col_names) > 1) {
+  #   filter <- character(0)
+  # } else {
+  #   filter <- character(0)
+  # }
 
   step_predictor_best_new(
     terms = x$terms,
+    score = x$score,
     role = x$role,
     trained = TRUE,
-    threshold = x$threshold,
+    results = score_objs,
+    prop_terms = x$prop_terms,
+    update_prop = x$update_prop,
     removals = filter,
     skip = x$skip,
     id = x$id,
@@ -142,7 +148,7 @@ print.step_predictor_best <- function(
   width = max(20, options()$width - 36),
   ...
 ) {
-  title <- "Feature selection on"
+  title <- "Feature selection on "
   print_step(
     x$removals,
     x$terms,
@@ -170,7 +176,7 @@ tidy.step_predictor_best <- function(x, ...) {
 #' @export
 tunable.step_predictor_best <- function(x, ...) {
   tibble::tibble(
-    name = "threshold",
+    name = "prop_terms",
     call_info = list(
       list(pkg = "dials", fun = "threshold")
     ),
@@ -178,4 +184,9 @@ tunable.step_predictor_best <- function(x, ...) {
     component = "step_predictor_best",
     component_id = x$id
   )
+}
+
+#' @export
+required_pkgs.step_predictor_desirability <- function(x, ...) {
+  c("important", "filtro")
 }

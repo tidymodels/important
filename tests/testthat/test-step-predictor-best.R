@@ -1,6 +1,10 @@
-# Infrastructure ---------------------------------------------------------------
 skip()
 
+rec <- recipe(mpg ~ ., data = mtcars) |>
+  step_predictor_best(all_predictors(), score = cor_pearson, prop_terms = 1 / 2)
+
+
+# Infrastructure ---------------------------------------------------------------
 test_that("bake method errors when needed non-standard role columns are missing", {
   # Here for completeness
   # step_predictor_best() removes variables and thus does not care if they are not there.
