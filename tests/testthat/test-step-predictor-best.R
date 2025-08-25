@@ -3,6 +3,9 @@ skip()
 rec <- recipe(mpg ~ ., data = mtcars) |>
   step_predictor_best(all_predictors(), score = cor_pearson, prop_terms = 1 / 2)
 
+prepped <- prep(rec)
+res_bake <- bake(prepped, mtcars)
+res_tidy <- tidy(prepped, 1)
 
 # Infrastructure ---------------------------------------------------------------
 test_that("bake method errors when needed non-standard role columns are missing", {
