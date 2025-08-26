@@ -42,9 +42,6 @@
 #' @examples
 #' library(recipes)
 #'
-#' rec <- recipe(mpg ~ ., data = mtcars) |>
-#'   step_predictor_best()
-#'
 #' prepped <- prep(rec)
 #'
 #' bake(prepped, mtcars)
@@ -162,31 +159,30 @@ prep.step_predictor_best <- function(x, training, info = NULL, ...) {
 
 calculate_predictor_best <- function(
   score,
+  prop_terms,
   outcome = character(0),
-  data,
-  opts = list()
+  data
 ) {
   score_function <- paste0("score_", score)
-
-  opts <- make_opt_list(opts, score)
 
   fm <- stats::as.formula(paste(outcome, "~ ."))
 
   score_res <- compute_score(
     score_function,
-    args = opts,
+    args = list(),
     form = fm,
-    data = training[c(outcome_name, col_names)],
-    weights = wts
+    data = training[c(outcome_name, col_names)]
+    #weights = wts
   )
 
   # ------------------------------------------------------------------------------
   # Fill in missings
+
   # The current filtro::fill_safe_value() only applies to class_score, not df.
 
-  # score_df <- # save for tidy method
-  #   score_res |>
-  #   filtro::fill_safe_value(return_results = TRUE)
+  score_df <- # save for tidy method
+    score_res |>
+    filtro::fill_safe_value(return_results = TRUE)
 
   # ------------------------------------------------------------------------------
   # filter predictors
