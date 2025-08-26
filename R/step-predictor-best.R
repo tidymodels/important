@@ -38,15 +38,6 @@
 #'   \item{terms}{character, the selectors or variables selected to be removed}
 #'   \item{id}{character, id of this step}
 #' }
-#'
-#' @examples
-#' library(recipes)
-#'
-#' prepped <- prep(rec)
-#'
-#' bake(prepped, mtcars)
-#'
-#' tidy(prepped, 1)
 step_predictor_best <- function(
   recipe,
   ...,
@@ -171,14 +162,14 @@ calculate_predictor_best <- function(
     score_function,
     args = list(),
     form = fm,
-    data = training[c(outcome_name, col_names)]
+    data = training[c(outcome_name, col_names)] #,
     #weights = wts
   )
 
   # ------------------------------------------------------------------------------
   # Fill in missings
 
-  # The current filtro::fill_safe_value() only applies to class_score, not df.
+  # The current filtro::fill_safe_value() only applies to class_score, not df nor tibble.
 
   score_df <- # save for tidy method
     score_res |>

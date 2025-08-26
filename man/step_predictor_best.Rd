@@ -81,15 +81,3 @@ returned with columns \code{terms} and \code{id}:
 }
 }
 
-\examples{
-library(recipes)
-
-rec <- recipe(mpg ~ ., data = mtcars) |>
-  step_predictor_best()
-
-prepped <- prep(rec)
-
-bake(prepped, mtcars)
-
-tidy(prepped, 1)
-}
