@@ -12,7 +12,6 @@ step_predictor_best(
   trained = FALSE,
   prop_terms = 0.5,
   update_prop = TRUE,
-  results = NULL,
   removals = NULL,
   skip = FALSE,
   id = rand_id("predictor_best")
@@ -39,9 +38,6 @@ used.}
 \item{update_prop}{A logical: should \code{prop_terms} be updated so that at least
 one predictor will be retained?}
 
-\item{results}{Fitted filtro objects. These values are not determined until
-\code{\link[recipes:prep]{recipes::prep()}} is called.}
-
 \item{removals}{A character string that contains the names of columns that
 should be removed. These values are not determined until \code{\link[recipes:prep]{recipes::prep()}}
 is called.}
@@ -53,6 +49,9 @@ outcome variable(s)). Care should be taken when using \code{skip = TRUE} as it
 may affect the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
+
+\item{results}{Fitted filtro objects. These values are not determined until
+\code{\link[recipes:prep]{recipes::prep()}} is called.}
 }
 \value{
 An updated version of \code{recipe} with the new step added to the

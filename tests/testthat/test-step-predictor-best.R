@@ -1,16 +1,37 @@
-skip()
+test_that("step works", {
+  rec <- recipe(mpg ~ ., data = mtcars) |>
+    step_predictor_best(
+      all_predictors(),
+      score = "cor_pearson",
+      prop_terms = 1 / 2
+    )
 
-library(filtro)
-rec <- recipe(mpg ~ ., data = mtcars) |>
-  step_predictor_best(
-    all_predictors(),
-    score = "cor_pearson",
-    prop_terms = 1 / 2
+  prepped <- prep(rec)
+  res_bake <- bake(prepped, mtcars)
+  res_tidy <- tidy(prepped, 1)
+
+  cor_pearson_res <- filtro::score_cor_pearson |>
+    filtro::fit(mpg ~ ., data = mtcars)
+
+  cor_pearson_res <- cor_pearson_res |> filtro::fill_safe_value()
+  exp <- cor_pearson_res@results |>
+    dplyr::slice_max(score, prop = 1 / 2, with_ties = TRUE) |>
+    dplyr::pull("predictor")
+
+  expect_identical(
+    sort(setdiff(names(mtcars), names(res_bake))),
+    sort(exp)
   )
 
-prepped <- prep(rec)
-res_bake <- bake(prepped, mtcars)
-res_tidy <- tidy(prepped, 1)
+  expect_identical(
+    sort(res_tidy$terms),
+    sort(exp)
+  )
+})
+
+# TODO Add more tests
+
+skip()
 
 # Infrastructure ---------------------------------------------------------------
 test_that("bake method errors when needed non-standard role columns are missing", {
