@@ -1,7 +1,12 @@
 skip()
+
 library(filtro)
 rec <- recipe(mpg ~ ., data = mtcars) |>
-  step_predictor_best(all_predictors(), score = cor_pearson, prop_terms = 1 / 2)
+  step_predictor_best(
+    all_predictors(),
+    score = "cor_pearson",
+    prop_terms = 1 / 2
+  )
 
 prepped <- prep(rec)
 res_bake <- bake(prepped, mtcars)

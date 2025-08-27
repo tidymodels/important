@@ -46,7 +46,7 @@ step_predictor_best <- function(
   trained = FALSE,
   prop_terms = 0.5,
   update_prop = TRUE,
-  results = NULL,
+  #results = NULL,
   removals = NULL,
   skip = FALSE,
   id = rand_id("predictor_best")
@@ -60,7 +60,7 @@ step_predictor_best <- function(
       trained = trained,
       prop_terms = prop_terms,
       update_prop = update_prop,
-      results = results,
+      #results = results,
       removals = removals,
       skip = skip,
       id = id,
@@ -77,7 +77,7 @@ step_predictor_best_new <-
     trained,
     prop_terms,
     update_prop = update_prop,
-    results,
+    #results,
     removals,
     skip,
     id,
@@ -91,7 +91,7 @@ step_predictor_best_new <-
       trained = trained,
       prop_terms = prop_terms,
       update_prop = update_prop,
-      results = results,
+      #results = results,
       removals = removals,
       skip = skip,
       id = id,
@@ -138,10 +138,10 @@ prep.step_predictor_best <- function(x, training, info = NULL, ...) {
     score = x$score,
     role = x$role,
     trained = TRUE,
-    results = score_objs,
+    #results = score_objs,
     prop_terms = x$prop_terms,
     update_prop = x$update_prop,
-    removals = removals,
+    removals = filter,
     skip = x$skip,
     id = x$id,
     case_weights = were_weights_used
@@ -162,7 +162,7 @@ calculate_predictor_best <- function(
     score_function,
     args = list(),
     form = fm,
-    data = training[c(outcome_name, col_names)] #,
+    data = data #,
     #weights = wts
   )
 
@@ -178,7 +178,7 @@ calculate_predictor_best <- function(
   # ------------------------------------------------------------------------------
   # filter predictors
   final_res <- score_df |>
-    dplyr::slice_max(score, prop = x$prop_terms, with_ties = TRUE) |>
+    dplyr::slice_max(score, prop = prop_terms, with_ties = TRUE) |>
     dplyr::pull("predictor")
 
   if (length(final_res) == 0) {
