@@ -21,9 +21,9 @@ Depends:
     recipes (>= 1.1.0)
 Imports: 
     cli,
-    desirability2 (>= 0.1.0.9000),
+    desirability2 (>= 0.2.0),
     dplyr,
-    filtro,
+    filtro (>= 0.2.0),
     generics,
     ggplot2,
     hardhat (>= 1.4.1),
@@ -46,9 +46,6 @@ Suggests:
     survival,
     testthat (>= 3.0.0),
     yardstick
-Remotes:
-    tidymodels/desirability2,
-    tidymodels/filtro
 Config/Needs/website: tidyverse/tidytemplate, tidymodels
 Config/testthat/edition: 3
 Config/usethis/last-upkeep: 2025-06-09
