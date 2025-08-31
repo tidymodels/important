@@ -1,4 +1,4 @@
-#' Multivariable Feature Selection
+#' Supervised Multivariable Feature Selection via Desirability Functions
 #'
 #' `step_predictor_desirability()` creates a *specification* of a recipe step
 #' that uses one or more "score" functions to measure how how much each predictor

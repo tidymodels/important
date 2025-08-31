@@ -2,7 +2,7 @@
 % Please edit documentation in R/step_predictor_desirability.R
 \name{step_predictor_desirability}
 \alias{step_predictor_desirability}
-\title{Multivariable Feature Selection}
+\title{Supervised Multivariable Feature Selection via Desirability Functions}
 \usage{
 step_predictor_desirability(
   recipe,

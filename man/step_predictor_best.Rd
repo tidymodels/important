@@ -2,7 +2,7 @@
 % Please edit documentation in R/step-predictor-best.R
 \name{step_predictor_best}
 \alias{step_predictor_best}
-\title{Feature Selection}
+\title{Supervised Feature Selection via Choosing the Top Predictors}
 \usage{
 step_predictor_best(
   recipe,
@@ -24,7 +24,10 @@ operations for this recipe.}
 \item{...}{One or more selector functions to choose variables for this step.
 See \code{\link[recipes:selections]{selections()}} for more details.}
 
-\item{score}{...}
+\item{score}{The name of a single score function from the \pkg{filtro}
+package, such as \code{\link[filtro:score_imp_rf]{filtro::score_imp_rf()}}, \code{\link[filtro:score_roc_auc]{filtro:: score_roc_auc()}}, etc.
+See the Details and Examples sections below. This argument \emph{should be named}
+when used.}
 
 \item{role}{Not used by this step since no new variables are created.}
 
@@ -38,7 +41,7 @@ used.}
 \item{update_prop}{A logical: should \code{prop_terms} be updated so that at least
 one predictor will be retained?}
 
-\item{removals}{A character string that contains the names of columns that
+\item{removals}{A character string that contains the names of predictors that
 should be removed. These values are not determined until \code{\link[recipes:prep]{recipes::prep()}}
 is called.}
 
@@ -49,13 +52,6 @@ outcome variable(s)). Care should be taken when using \code{skip = TRUE} as it
 may affect the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
-
-\item{results}{Fitted filtro objects. These values are not determined until
-\code{\link[recipes:prep]{recipes::prep()}} is called.}
-}
-\value{
-An updated version of \code{recipe} with the new step added to the
-sequence of any existing operations.
 }
 \description{
 \code{step_predictor_best()} creates a \emph{specification} of a recipe step that will

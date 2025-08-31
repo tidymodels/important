@@ -1,15 +1,15 @@
-#' Feature Selection
+#' Supervised Feature Selection via A Single Filter
 #'
 #' `step_predictor_retain()` creates a *specification* of a recipe step that will
 #' perform feature selection by ...
 #'
-#' @inheritParams recipes::step_center
-#' @param score ...
-#' @param removals A character string that contains the names of columns that
-#'   should be removed. These values are not determined until [recipes::prep()]
-#'   is called.
-#' @return An updated version of `recipe` with the new step added to the
-#'  sequence of any existing operations.
+#' @inheritParams step_predictor_desirability
+#' @param score A valid R expression that produces a logical result. The
+#' equation can contain the names of one or more score functions from the
+#' \pkg{filtro} package, such as [filtro::score_imp_rf()],
+#' [filtro:: score_roc_auc()]. See the Details and Examples sections below.
+#' This argument *should be named* when used.
+#'
 #' @export
 #'
 #' @details
