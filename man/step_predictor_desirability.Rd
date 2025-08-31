@@ -2,7 +2,7 @@
 % Please edit documentation in R/step_predictor_desirability.R
 \name{step_predictor_desirability}
 \alias{step_predictor_desirability}
-\title{Feature Selection}
+\title{Multivariable Feature Selection}
 \usage{
 step_predictor_desirability(
   recipe,
@@ -109,7 +109,7 @@ specifically referenced by name. To avoid this, see the advice in the \emph{Tips
 for saving recipes and filtering columns} section of \link[recipes:selections]{recipes::selections}.
 \subsection{Ties}{
 
-Note that \code{dplyr::slice_max()} with the argument \code{with_ties = TRUE } is used
+Note that \code{\link[dplyr:slice]{dplyr::slice_max()}} with the argument \code{with_ties = TRUE } is used
 to select predictors. If there are many ties in overall desirability, the
 proportion selected can be larger than the value given to \code{prep_terms()}.
 }
@@ -129,9 +129,20 @@ other role). A full example is below.
 
 For a trained recipe, the \code{tidy()} method will return a tibble with columns
 \code{terms} (the predictor names), \code{id}, columns for the estimated scores, and
-the desirability results. The desirability columns will have the same name
-as the scores with an additional prefix of \code{.d_}. The overall desirability
-column is called \code{.d_overall}.
+the desirability results.
+
+There are two versions of the score results. The columns prefixed with
+\code{"score_1"} have been altered with their transformation (see the Details page
+for each score) and have had missing values filled with "safe" values to
+prevent them from being missing. The other set of scores lack the prefix and
+are the original, raw score values.
+
+The desirability columns will have the same name as the scores with an
+additional prefix of \code{.d_}. The overall desirability column is called
+\code{.d_overall}.
+
+There is an additional local column called \code{retain} that notes whether the
+predictor passed the filter and is retained after this step is executed.
 }
 }
 \examples{
@@ -149,13 +160,13 @@ if (rlang::is_installed("modeldata")) {
 	# important.
 
 	# The score_* objects here are from the filtro package. See Details above.
- goals <-
+	goals <-
    desirability(
      maximize(score_xtab_pval_fisher),
      maximize(score_aov_pval)
-   )
+  )
 
- example_data <- modeldata::ad_data
+	example_data <- modeldata::ad_data
 	rec <-
 		recipe(Class ~ ., data = example_data) |>
 		step_predictor_desirability(

@@ -1,4 +1,4 @@
-#'Feature Selection
+#' Multivariable Feature Selection
 #'
 #' `step_predictor_desirability()` creates a *specification* of a recipe step
 #' that uses one or more "score" functions to measure how how much each predictor
@@ -60,7 +60,7 @@
 #'
 #' ## Ties
 #'
-#' Note that `dplyr::slice_max()` with the argument `with_ties = TRUE ` is used
+#' Note that [dplyr::slice_max()] with the argument `with_ties = TRUE ` is used
 #' to select predictors. If there are many ties in overall desirability, the
 #' proportion selected can be larger than the value given to `prep_terms()`.
 #'
@@ -78,9 +78,20 @@
 #'
 #' For a trained recipe, the `tidy()` method will return a tibble with columns
 #' `terms` (the predictor names), `id`, columns for the estimated scores, and
-#' the desirability results. The desirability columns will have the same name
-#' as the scores with an additional prefix of `.d_`. The overall desirability
-#' column is called `.d_overall`.
+#' the desirability results.
+#'
+#' There are two versions of the score results. The columns prefixed with
+#' `"score_1"` have been altered with their transformation (see the Details page
+#' for each score) and have had missing values filled with "safe" values to
+#' prevent them from being missing. The other set of scores lack the prefix and
+#' are the original, raw score values.
+#'
+#' The desirability columns will have the same name as the scores with an
+#' additional prefix of `.d_`. The overall desirability column is called
+#' `.d_overall`.
+#'
+#' There is an additional local column called `retain` that notes whether the
+#' predictor passed the filter and is retained after this step is executed.
 #'
 #' @return An updated version of `recipe` with the new step added to the
 #'  sequence of any existing operations. When you
@@ -111,13 +122,13 @@
 #' 	# important.
 #'
 #' 	# The score_* objects here are from the filtro package. See Details above.
-#'  goals <-
+#' 	goals <-
 #'    desirability(
 #'      maximize(score_xtab_pval_fisher),
 #'      maximize(score_aov_pval)
-#'    )
+#'   )
 #'
-#'  example_data <- modeldata::ad_data
+#' 	example_data <- modeldata::ad_data
 #' 	rec <-
 #' 		recipe(Class ~ ., data = example_data) |>
 #' 		step_predictor_desirability(
@@ -196,12 +207,12 @@ step_predictor_desirability <- function(
   skip = FALSE,
   id = rand_id("predictor_desirability")
 ) {
-	if (!inherits(score, "desirability2::desirability_set")) {
-		cli::cli_abort(
-			"Please use the {.fn desirability} function in the {.pkg desirability2}
+  if (!inherits(score, "desirability2::desirability_set")) {
+    cli::cli_abort(
+      "Please use the {.fn desirability} function in the {.pkg desirability2}
 		   package to create an object to pass to {.arg score}."
-		)
-	}
+    )
+  }
   add_step(
     recipe,
     step_predictor_desirability_new(
@@ -252,31 +263,36 @@ step_predictor_desirability_new <-
 
 #' @export
 prep.step_predictor_desirability <- function(x, training, info = NULL, ...) {
-	rlang::check_installed("desirability2")
+  rlang::check_installed("desirability2")
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer", "factor"))
-  check_number_decimal(x$prop_terms, min = .Machine$double.eps, max = 1, arg = "prop_terms")
+  check_number_decimal(
+    x$prop_terms,
+    min = .Machine$double.eps,
+    max = 1,
+    arg = "prop_terms"
+  )
 
   if (length(col_names) < 2) {
-  	res <-
-  		step_predictor_desirability_new(
-  		terms = x$terms,
-  		score = score,
-  		role = x$role,
-  		trained = TRUE,
-  		prop_terms = x$prop_terms,
-  		update_prop = x$update_prop,
-  		results = NULL,
-  		removals = character(0),
-  		skip = x$skip,
-  		id = x$id,
-  		case_weights = were_weights_used
-  	)
-  	return(res)
+    res <-
+      step_predictor_desirability_new(
+        terms = x$terms,
+        score = score,
+        role = x$role,
+        trained = TRUE,
+        prop_terms = x$prop_terms,
+        update_prop = x$update_prop,
+        results = NULL,
+        removals = character(0),
+        skip = x$skip,
+        id = x$id,
+        case_weights = were_weights_used
+      )
+    return(res)
   }
 
   if (x$update_prop) {
-  	x$prop_terms <- update_prop(length(col_names), x$prop_terms)
+    x$prop_terms <- update_prop(length(col_names), x$prop_terms)
   }
 
   # First we check the _type_ of weight to see if it is used. Later, in
@@ -293,33 +309,43 @@ prep.step_predictor_desirability <- function(x, training, info = NULL, ...) {
   fm <- stats::as.formula(fm)
 
   score_objs <-
-  	purrr::map(
-  		score_names,
-  		~ compute_score(.x, list(), fm, training[ c(outcome_name, col_names)], wts)
-  	) |>
-  	filtro::fill_safe_values() # and then transform?
+    purrr::map(
+      score_names,
+      ~ compute_score(.x, list(), fm, training[c(outcome_name, col_names)], wts)
+    )
+  raw_scores <- filtro::bind_scores(score_objs)
+
+  score_objs <-
+    score_objs |>
+    filtro::fill_safe_values() # <- transforms too
 
   # The score names include "score_" but the column names don't
   rm_vec <- gsub("^score_", "", score_names)
   names(rm_vec) <- score_names
   score_objs <- dplyr::rename(score_objs, rm_vec)
 
-  # make desirability expression/eval quosre
-  score_objs <- desirability2::make_desirability_cols(x$score, score_objs)
+  # make desirability expression/eval quosure
+  score_df <- desirability2::make_desirability_cols(x$score, score_objs)
 
   keep_list <-
-  	score_objs |>
-  	dplyr::slice_max(.d_overall, prop = x$prop_terms, with_ties = TRUE)
+    score_df |>
+    dplyr::slice_max(.d_overall, prop = x$prop_terms, with_ties = TRUE)
   rm_list <-
-  	dplyr::anti_join(score_objs, keep_list[, "predictor"], by = "predictor") |>
-  	purrr::pluck("predictor")
+    dplyr::anti_join(score_df, keep_list[, "predictor"], by = "predictor") |>
+    purrr::pluck("predictor")
+
+  score_df$retain <- score_df$predictor %in% rm_list
+
+  score_df <- score_df |>
+    dplyr::full_join(raw_scores, by = c("outcome", "predictor")) |>
+    dplyr::relocate(retain, .after = "predictor")
 
   step_predictor_desirability_new(
     terms = x$terms,
     score = x$score,
     role = x$role,
     trained = TRUE,
-    results = score_objs,
+    results = score_df,
     prop_terms = x$prop_terms,
     update_prop = x$update_prop,
     removals = rm_list,
@@ -336,7 +362,11 @@ bake.step_predictor_desirability <- function(object, new_data, ...) {
 }
 
 #' @export
-print.step_predictor_desirability <- function(x, width = max(20, options()$width - 36), ...) {
+print.step_predictor_desirability <- function(
+  x,
+  width = max(20, options()$width - 36),
+  ...
+) {
   title <- "Feature selection via desirability functions on"
   print_step(
     x$removals,
@@ -354,8 +384,8 @@ print.step_predictor_desirability <- function(x, width = max(20, options()$width
 tidy.step_predictor_desirability <- function(x, ...) {
   if (is_trained(x)) {
     res <-
-    	x$results |>
-    	dplyr::select(-outcome, terms = predictor)
+      x$results |>
+      dplyr::select(-outcome, terms = predictor)
     res$retained <- !(res$terms %in% x$removals)
   } else {
     term_names <- sel2char(x$terms)
@@ -380,5 +410,5 @@ tunable.step_predictor_desirability <- function(x, ...) {
 
 #' @export
 required_pkgs.step_predictor_desirability <- function(x, ...) {
-	c("important", "filtro", "desirability2")
+  c("important", "filtro", "desirability2")
 }
