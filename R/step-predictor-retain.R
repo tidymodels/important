@@ -237,3 +237,9 @@ tidy.step_predictor_retain <- function(x, ...) {
   res$id <- x$id
   res
 }
+
+#' @rdname required_pkgs.important
+#' @export
+required_pkgs.step_predictor_desirability <- function(x, ...) {
+  c("important", "filtro")
+}

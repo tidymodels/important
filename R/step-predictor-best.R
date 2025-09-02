@@ -230,7 +230,8 @@ tunable.step_predictor_best <- function(x, ...) {
   )
 }
 
+#' @rdname required_pkgs.important
 #' @export
-required_pkgs.step_predictor_desirability <- function(x, ...) {
+required_pkgs.step_predictor_best <- function(x, ...) {
   c("important", "filtro")
 }
