@@ -29,6 +29,7 @@ Imports:
     hardhat (>= 1.4.1),
     purrr,
     rlang (>= 1.1.0),
+    S7,
     tibble,
     tidyr,
     tune,
