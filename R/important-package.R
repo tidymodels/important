@@ -36,5 +36,10 @@ utils::globalVariables(
     "score_objs"
   )
 )
+
+# enable usage of <S7_object>@name in package code
+#' @rawNamespace if (getRversion() < "4.3.0") importFrom("S7", "@")
+NULL
+
 ## usethis namespace: end
 NULL
