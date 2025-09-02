@@ -222,7 +222,7 @@ tunable.step_predictor_best <- function(x, ...) {
   tibble::tibble(
     name = "prop_terms",
     call_info = list(
-      list(pkg = "dials", fun = "threshold")
+      list(pkg = "dials", fun = "prop_terms")
     ),
     source = "recipe",
     component = "step_predictor_best",

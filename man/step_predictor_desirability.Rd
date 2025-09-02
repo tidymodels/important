@@ -224,7 +224,7 @@ if (rlang::is_installed("modeldata")) {
  library(dplyr)
  library(ggplot2)
 
- # The selection did not substantually change with these case weights
+ # The selection did not substantially change with these case weights
  full_join(predictor_scores, predictor_scores_wts, by = "terms") |>
  	ggplot(aes(.d_overall, .d_overall_weighted)) +
  	geom_abline(col = "darkgreen", lty = 2) +
