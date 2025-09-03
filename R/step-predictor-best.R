@@ -192,7 +192,10 @@ print.step_predictor_best <- function(
   width = max(20, options()$width - 36),
   ...
 ) {
-  title <- "Feature selection on "
+  scores <- unique(x$score)
+  title <- cli::format_inline(
+    "Feature selection via {.code {scores}} on"
+  )
   print_step(
     x$removals,
     x$terms,

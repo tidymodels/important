@@ -213,7 +213,11 @@ print.step_predictor_retain <- function(
   width = max(20, options()$width - 36),
   ...
 ) {
-  title <- "Feature selection on "
+  scores <- unique(all.vars(x$score))
+
+  title <- cli::format_inline(
+    "Feature selection using {.and {.code {scores}}} on"
+  )
   print_step(
     x$removals,
     x$terms,

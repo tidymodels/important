@@ -1,4 +1,4 @@
-#' Supervised Multivariable Feature Selection via Desirability Functions
+#' Supervised Multivariate Feature Selection via Desirability Functions
 #'
 #' `step_predictor_desirability()` creates a *specification* of a recipe step
 #' that uses one or more "score" functions to measure how how much each predictor
@@ -367,7 +367,12 @@ print.step_predictor_desirability <- function(
   width = max(20, options()$width - 36),
   ...
 ) {
-  title <- "Feature selection via desirability functions on"
+  scores <- purrr::map_chr(x$score@variables, ~ gsub("score_", "", .x))
+  scores <- unique(scores)
+
+  title <- cli::format_inline(
+    "Feature selection via desirability functions ({.code {scores}}) on"
+  )
   print_step(
     x$removals,
     x$terms,

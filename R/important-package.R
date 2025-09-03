@@ -6,6 +6,7 @@
 #' @import rlang
 #' @importFrom stats sd predict as.formula
 #' @importFrom hardhat extract_fit_parsnip
+#' @importFrom S7 check_is_S7
 
 #' @importFrom ggplot2 autoplot
 #' @export
@@ -33,7 +34,8 @@ utils::globalVariables(
     "score",
     ".d_overall",
     "outcome",
-    "score_objs"
+    "score_objs",
+    "retain"
   )
 )
 

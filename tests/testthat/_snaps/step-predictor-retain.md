@@ -12,7 +12,7 @@
       predictor: 10
       
       -- Operations 
-      * Feature selection on: <none>
+      * Feature selection using on: <none>
 
 ---
 
@@ -31,7 +31,7 @@
       Training data contained 32 data points and no incomplete rows.
       
       -- Operations 
-      * Feature selection on: <none> | Trained
+      * Feature selection using on: <none> | Trained
 
 # printing
 
@@ -47,7 +47,7 @@
       predictor: 10
       
       -- Operations 
-      * Feature selection on: all_predictors()
+      * Feature selection using `cor_pearson` on: all_predictors()
 
 ---
 
@@ -66,7 +66,7 @@
       Training data contained 32 data points and no incomplete rows.
       
       -- Operations 
-      * Feature selection on: cyl, disp, hp, wt | Trained
+      * Feature selection using `cor_pearson` on: cyl, disp, hp, wt | Trained
 
 # bad args
 
