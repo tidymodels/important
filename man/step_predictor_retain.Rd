@@ -10,6 +10,7 @@ step_predictor_retain(
   score,
   role = NA,
   trained = FALSE,
+  results = NULL,
   removals = NULL,
   skip = FALSE,
   id = rand_id("predictor_retain")
@@ -32,6 +33,10 @@ This argument \emph{should be named} when used.}
 
 \item{trained}{A logical to indicate if the quantities for preprocessing have
 been estimated.}
+
+\item{results}{A data frame of score and desirability values for each
+predictor evaluated. These values are not determined until \code{\link[recipes:prep]{recipes::prep()}}
+is called.}
 
 \item{removals}{A character string that contains the names of predictors that
 should be removed. These values are not determined until \code{\link[recipes:prep]{recipes::prep()}}

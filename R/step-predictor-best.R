@@ -66,6 +66,20 @@
 #'   \item{terms}{character, the selectors or variables selected to be removed}
 #'   \item{id}{character, id of this step}
 #' }
+#' @examples
+#' library(recipes)
+#'
+#' rec <- recipe(mpg ~ ., data = mtcars) |>
+#'   step_predictor_best(
+#'     all_predictors(),
+#'     score = "cor_spearman"
+#'   )
+#'
+#' prepped <- prep(rec)
+#'
+#' bake(prepped, mtcars)
+#'
+#' tidy(prepped, 1)
 step_predictor_best <- function(
   recipe,
   ...,
@@ -74,7 +88,7 @@ step_predictor_best <- function(
   trained = FALSE,
   prop_terms = 0.5,
   update_prop = TRUE,
-  #results = NULL,
+  results = NULL,
   removals = NULL,
   skip = FALSE,
   id = rand_id("predictor_best")
@@ -88,7 +102,7 @@ step_predictor_best <- function(
       trained = trained,
       prop_terms = prop_terms,
       update_prop = update_prop,
-      #results = results,
+      results = results,
       removals = removals,
       skip = skip,
       id = id,
@@ -105,7 +119,7 @@ step_predictor_best_new <-
     trained,
     prop_terms,
     update_prop = update_prop,
-    #results,
+    results,
     removals,
     skip,
     id,
@@ -119,7 +133,7 @@ step_predictor_best_new <-
       trained = trained,
       prop_terms = prop_terms,
       update_prop = update_prop,
-      #results = results,
+      results = results,
       removals = removals,
       skip = skip,
       id = id,
@@ -151,14 +165,24 @@ prep.step_predictor_best <- function(x, training, info = NULL, ...) {
   outcome_name <- pull_outcome_column_name(info)
 
   if (length(col_names) > 1) {
-    filter <- calculate_predictor_best(
-      score = x$score,
-      prop_terms = x$prop_terms,
-      outcome = outcome_name,
-      data = training[, c(outcome_name, col_names)]
+    filter_res <- list(
+      raw = tibble::tibble(
+        outcome = character(0),
+        predictor = character(0),
+        score = double(0)
+      ),
+      removals = character(0)
     )
   } else {
-    filter <- character(0)
+    filter_res <- list(
+      tibble::tibble(
+        outcome = character(0),
+        predictor = character(0),
+        score = double(0),
+        .removed = logical(0)
+      ),
+      removals = character(0)
+    )
   }
 
   step_predictor_best_new(
@@ -166,10 +190,10 @@ prep.step_predictor_best <- function(x, training, info = NULL, ...) {
     score = x$score,
     role = x$role,
     trained = TRUE,
-    #results = score_objs,
+    results = filter_res$raw,
     prop_terms = x$prop_terms,
     update_prop = x$update_prop,
-    removals = filter,
+    removals = filter_res$removals,
     skip = x$skip,
     id = x$id,
     case_weights = were_weights_used
@@ -199,20 +223,37 @@ calculate_predictor_best <- function(
 
   # The current filtro::fill_safe_value() only applies to class_score, not df nor tibble.
 
-  score_df <- # save for tidy method
+  score_df <-
     score_res |>
     filtro::fill_safe_value(return_results = TRUE, transform = TRUE)
 
   # ------------------------------------------------------------------------------
   # filter predictors
-  final_res <- score_df |>
-    dplyr::slice_max(score, prop = prop_terms, with_ties = TRUE) |>
-    dplyr::pull("predictor")
 
-  if (length(final_res) == 0) {
-    # final_res <- fallback_pred()
+  if (score_res@direction == "maximize") {
+    keepers <- score_df |>
+      dplyr::slice_max(score, prop = prop_terms, with_ties = TRUE)
+    fallback_col <- score_df$predictor[which.max(score_df$score)[1]]
+  } else {
+    keepers <- score_df |>
+      dplyr::slice_min(score, prop = prop_terms, with_ties = TRUE)
+    fallback_col <- score_df$predictor[which.min(score_df$score)[1]]
   }
-  final_res
+  keepers <- keepers |> dplyr::pull("predictor")
+
+  if (length(keepers) == 0) {
+    keepers <- score_df$predictors[score_df$predictors != fallback_col]
+  }
+
+  removals <- setdiff(score_df$predictor, keepers)
+
+  raw_res <- score_res@results |> dplyr::select(outcome, predictor, score)
+  raw_res$.removed <- raw_res$predictor %in% removals
+
+  list(
+    raw = raw_res,
+    removals = removals
+  )
 }
 
 #' @export
@@ -244,16 +285,7 @@ print.step_predictor_best <- function(
 
 #' @usage NULL
 #' @export
-tidy.step_predictor_best <- function(x, ...) {
-  if (is_trained(x)) {
-    res <- tibble::tibble(terms = unname(x$removals))
-  } else {
-    term_names <- sel2char(x$terms)
-    res <- tibble::tibble(terms = term_names)
-  }
-  res$id <- x$id
-  res
-}
+tidy.step_predictor_best <- tidy_filtro_rec
 
 #' @export
 tunable.step_predictor_best <- function(x, ...) {

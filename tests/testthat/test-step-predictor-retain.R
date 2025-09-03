@@ -18,7 +18,7 @@ test_that("step works", {
     cor_pearson_res,
     cor_spearman_res
   )) |>
-    dplyr::filter(abs(cor_pearson) >= 0.75 & abs(cor_spearman) >= 0.6) |>
+    dplyr::filter(abs(cor_pearson) < 0.75 | abs(cor_spearman) < 0.6) |>
     dplyr::pull(predictor)
 
   expect_identical(
@@ -26,41 +26,36 @@ test_that("step works", {
     sort(exp)
   )
   expect_identical(
-    sort(res_tidy$terms),
+    sort(res_tidy$terms[res_tidy$.removed]),
     sort(exp)
+  )
+  expect_named(
+    res_tidy,
+    c("terms", ".removed", "cor_pearson", "cor_spearman", "id")
   )
 })
 
-test_that("step allows for no removals", {
+test_that("EVERYTHING MUST GO", {
   rec <- recipe(mpg ~ ., data = mtcars) |>
     step_predictor_retain(
       all_predictors(),
-      score = abs(cor_pearson) >= 0.99 & abs(cor_spearman) >= 0.99
+      score = abs(cor_pearson) >= Inf & abs(cor_spearman) >= Inf
     )
 
   prepped <- prep(rec)
   res_bake <- bake(prepped, mtcars)
   res_tidy <- tidy(prepped, 1)
 
-  cor_pearson_res <- filtro::score_cor_pearson |>
-    filtro::fit(mpg ~ ., data = mtcars)
-  cor_spearman_res <- filtro::score_cor_spearman |>
-    filtro::fit(mpg ~ ., data = mtcars)
-
-  exp <- filtro::fill_safe_values(list(
-    cor_pearson_res,
-    cor_spearman_res
-  )) |>
-    dplyr::filter(abs(cor_pearson) >= 0.99 & abs(cor_spearman) >= 0.99) |>
-    dplyr::pull(predictor)
-
   expect_identical(
     sort(setdiff(names(mtcars), names(res_bake))),
-    sort(exp)
+    sort(names(mtcars)[-1])
   )
-  expect_identical(
-    sort(res_tidy$terms),
-    sort(exp)
+  expect_true(
+    all(res_tidy$.removed)
+  )
+  expect_named(
+    res_tidy,
+    c("terms", ".removed", "cor_pearson", "cor_spearman", "id")
   )
 })
 
@@ -79,16 +74,16 @@ test_that("allows for one score", {
     filtro::fit(mpg ~ ., data = mtcars)
 
   exp <- cor_pearson_res@results |>
-    dplyr::filter(abs(score) >= 0.7) |>
+    dplyr::filter(abs(score) < 0.7) |>
     dplyr::pull(predictor)
 
   expect_identical(
     sort(setdiff(names(mtcars), names(res_bake))),
     sort(exp)
   )
-  expect_identical(
-    sort(res_tidy$terms),
-    sort(exp)
+  expect_named(
+    res_tidy,
+    c("terms", ".removed", "cor_pearson", "id")
   )
 })
 
@@ -134,7 +129,14 @@ test_that("empty selection tidy method works", {
 
   rec <- prep(rec, mtcars)
 
-  expect_identical(tidy(rec, number = 1), expect)
+  expect_identical(
+    tidy(rec, number = 1),
+    tibble::tibble(
+      terms = character(0),
+      .removed = logical(0),
+      id = character(0)
+    )
+  )
 })
 
 test_that("printing", {

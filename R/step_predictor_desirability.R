@@ -142,12 +142,12 @@
 #' 	rec
 #'
 #' 	# Now evaluate the predictors and rank them via desirability:
-#' 	rec_trained <- prep(rec)
-#' 	rec_trained
+#' 	prepped <- prep(rec)
+#' 	prepped
 #'
 #' 	# Use the tidy() method to get the results:
-#' 	predictor_scores <- tidy(rec_trained, number = 1)
-#' 	mean(predictor_scores$retained)
+#' 	predictor_scores <- tidy(prepped, number = 1)
+#' 	mean(predictor_scores$.removed)
 #' 	predictor_scores
 #'
 #'  # --------------------------------------------------------------------------
@@ -337,11 +337,11 @@ prep.step_predictor_desirability <- function(x, training, info = NULL, ...) {
     dplyr::anti_join(score_df, keep_list[, "predictor"], by = "predictor") |>
     purrr::pluck("predictor")
 
-  score_df$retain <- score_df$predictor %in% rm_list
+  score_df$.removed <- score_df$predictor %in% rm_list
 
   score_df <- score_df |>
     dplyr::full_join(raw_scores, by = c("outcome", "predictor")) |>
-    dplyr::relocate(retain, .after = "predictor")
+    dplyr::relocate(.removed, .after = "predictor")
 
   step_predictor_desirability_new(
     terms = x$terms,
@@ -389,19 +389,7 @@ print.step_predictor_desirability <- function(
 
 #' @usage NULL
 #' @export
-tidy.step_predictor_desirability <- function(x, ...) {
-  if (is_trained(x)) {
-    res <-
-      x$results |>
-      dplyr::select(-outcome, terms = predictor)
-    res$retained <- !(res$terms %in% x$removals)
-  } else {
-    term_names <- sel2char(x$terms)
-    res <- tibble::tibble(terms = term_names)
-  }
-  res$id <- x$id
-  res
-}
+tidy.step_predictor_desirability <- tidy_filtro_rec
 
 #' @export
 tunable.step_predictor_desirability <- function(x, ...) {

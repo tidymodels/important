@@ -35,7 +35,8 @@ utils::globalVariables(
     ".d_overall",
     "outcome",
     "score_objs",
-    "retain"
+    ".removed",
+    "terms"
   )
 )
 

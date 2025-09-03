@@ -200,12 +200,12 @@ if (rlang::is_installed("modeldata")) {
 	rec
 
 	# Now evaluate the predictors and rank them via desirability:
-	rec_trained <- prep(rec)
-	rec_trained
+	prepped <- prep(rec)
+	prepped
 
 	# Use the tidy() method to get the results:
-	predictor_scores <- tidy(rec_trained, number = 1)
-	mean(predictor_scores$retained)
+	predictor_scores <- tidy(prepped, number = 1)
+	mean(predictor_scores$.removed)
 	predictor_scores
 
  # --------------------------------------------------------------------------

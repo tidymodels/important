@@ -86,6 +86,7 @@ step_predictor_retain <- function(
   score,
   role = NA,
   trained = FALSE,
+  results = NULL,
   removals = NULL,
   skip = FALSE,
   id = rand_id("predictor_retain")
@@ -97,6 +98,7 @@ step_predictor_retain <- function(
       role = role,
       trained = trained,
       score = rlang::enexpr(score),
+      results = results,
       removals = removals,
       skip = skip,
       id = id,
@@ -111,6 +113,7 @@ step_predictor_retain_new <-
     role,
     trained,
     score,
+    results,
     removals,
     skip,
     id,
@@ -122,6 +125,7 @@ step_predictor_retain_new <-
       role = role,
       trained = trained,
       score = score,
+      results = results,
       removals = removals,
       skip = skip,
       id = id,
@@ -143,13 +147,20 @@ prep.step_predictor_retain <- function(x, training, info = NULL, ...) {
   outcome_name <- pull_outcome_column_name(info)
 
   if (length(col_names) > 1) {
-    filter <- calculate_predictor_retain(
+    filter_res <- calculate_predictor_retain(
       xpr = x$score,
       outcome = outcome_name,
       data = training[, c(outcome_name, col_names)]
     )
   } else {
-    filter <- character(0)
+    filter_res <- list(
+      raw = tibble::tibble(
+        outcome = character(0),
+        predictor = character(0),
+        .removed = logical(0)
+      ),
+      removals = character(0)
+    )
   }
 
   step_predictor_retain_new(
@@ -157,7 +168,8 @@ prep.step_predictor_retain <- function(x, training, info = NULL, ...) {
     role = x$role,
     trained = TRUE,
     score = x$score,
-    removals = filter,
+    results = filter_res$raw,
+    removals = filter_res$removals,
     skip = x$skip,
     id = x$id,
     case_weights = were_weights_used
@@ -210,17 +222,27 @@ calculate_predictor_retain <- function(
   # ------------------------------------------------------------------------------
   # filter predictors
 
-  final_res <- score_df |> dplyr::filter(!!xpr) |> purrr::pluck("predictor")
+  keepers <- score_df |> dplyr::filter(!!xpr) |> purrr::pluck("predictor")
 
-  if (length(final_res) == 0) {
-    # final_res <- fallback_pred()
-  }
-  final_res
-}
+  # if (length(keepers) == 0) {
+  #   first_score <- all.vars(xpr)[1]
+  #   first_score_obj <- score_res[[first_score]]
+  #
+  #   if (first_score_obj@direction == "maximize") {
+  #     keepers <- score_df$predictor[which.max(score_df[[first_score]])[1]]
+  #   } else {
+  #     keepers <- score_df$predictor[which.min(score_df[[first_score]])[1]]
+  #   }
+  # }
+  removals <- setdiff(score_df$predictor, keepers)
 
-fallback_pred <- function(scores) {
-  # get individual ranks
-  # save best average rank
+  raw_res <- filtro::bind_scores(score_res)
+  raw_res$.removed <- raw_res$predictor %in% removals
+
+  list(
+    raw = raw_res,
+    removals = removals
+  )
 }
 
 make_opt_list <- function(opts, scores) {
@@ -247,8 +269,10 @@ print.step_predictor_retain <- function(
 ) {
   scores <- unique(all.vars(x$score))
 
+  word <- ifelse(x$trained, "removing", "for")
+
   title <- cli::format_inline(
-    "Feature selection using {.and {.code {scores}}} on"
+    "Feature selection using {.and {.code {scores}}} {word}"
   )
   print_step(
     x$removals,
@@ -263,16 +287,7 @@ print.step_predictor_retain <- function(
 
 #' @usage NULL
 #' @export
-tidy.step_predictor_retain <- function(x, ...) {
-  if (is_trained(x)) {
-    res <- tibble::tibble(terms = unname(x$removals))
-  } else {
-    term_names <- sel2char(x$terms)
-    res <- tibble::tibble(terms = term_names)
-  }
-  res$id <- x$id
-  res
-}
+tidy.step_predictor_retain <- tidy_filtro_rec
 
 #' @rdname required_pkgs.important
 #' @export

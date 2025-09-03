@@ -12,6 +12,7 @@ step_predictor_best(
   trained = FALSE,
   prop_terms = 0.5,
   update_prop = TRUE,
+  results = NULL,
   removals = NULL,
   skip = FALSE,
   id = rand_id("predictor_best")
@@ -40,6 +41,10 @@ used.}
 
 \item{update_prop}{A logical: should \code{prop_terms} be updated so that at least
 one predictor will be retained?}
+
+\item{results}{A data frame of score and desirability values for each
+predictor evaluated. These values are not determined until \code{\link[recipes:prep]{recipes::prep()}}
+is called.}
 
 \item{removals}{A character string that contains the names of predictors that
 should be removed. These values are not determined until \code{\link[recipes:prep]{recipes::prep()}}
@@ -130,3 +135,18 @@ returned with columns \code{terms} and \code{id}:
 }
 }
 
+\examples{
+library(recipes)
+
+rec <- recipe(mpg ~ ., data = mtcars) |>
+  step_predictor_best(
+    all_predictors(),
+    score = "cor_spearman"
+  )
+
+prepped <- prep(rec)
+
+bake(prepped, mtcars)
+
+tidy(prepped, 1)
+}
