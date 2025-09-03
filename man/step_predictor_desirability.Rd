@@ -71,7 +71,7 @@ Once trained, additional columns are included (see Details section).
 }
 \description{
 \code{step_predictor_desirability()} creates a \emph{specification} of a recipe step
-that uses one or more "score" functions to measure how how much each predictor
+that uses one or more "score" functions to measure how much each predictor
 is related to the outcome value. These scores are combined into a composite
 value using user-specified \emph{desirability} functions and a proportion of the
 most desirable predictors are retained.
@@ -107,6 +107,29 @@ This step can potentially remove columns from the data set. This may cause
 issues for subsequent steps in your recipe if the missing columns are
 specifically referenced by name. To avoid this, see the advice in the \emph{Tips
 for saving recipes and filtering columns} section of \link[recipes:selections]{recipes::selections}.
+\subsection{Scoring Functions}{
+
+As of version 0.2.0 of the \pkg{filtro} package, the following score functions are available:
+
+\itemize{
+
+\item \code{aov_fstat} (\code{\link[filtro:score_aov_fstat]{documentation}})
+\item \code{aov_pval} (\code{\link[filtro:score_aov_pval]{documentation}})
+\item \code{cor_pearson} (\code{\link[filtro:score_cor_pearson]{documentation}})
+\item \code{cor_spearman} (\code{\link[filtro:score_cor_spearman]{documentation}})
+\item \code{gain_ratio} (\code{\link[filtro:score_gain_ratio]{documentation}})
+\item \code{imp_rf} (\code{\link[filtro:score_imp_rf]{documentation}})
+\item \code{imp_rf_conditional} (\code{\link[filtro:score_imp_rf_conditional]{documentation}})
+\item \code{imp_rf_oblique} (\code{\link[filtro:score_imp_rf_oblique]{documentation}})
+\item \code{info_gain} (\code{\link[filtro:score_info_gain]{documentation}})
+\item \code{roc_auc} (\code{\link[filtro:score_roc_auc]{documentation}})
+\item \code{sym_uncert} (\code{\link[filtro:score_sym_uncert]{documentation}})
+\item \code{xtab_pval_chisq} (\code{\link[filtro:score_xtab_pval_chisq]{documentation}})
+\item \code{xtab_pval_fisher} (\code{\link[filtro:score_xtab_pval_fisher]{documentation}})
+
+}
+}
+
 \subsection{Ties}{
 
 Note that \code{\link[dplyr:slice]{dplyr::slice_max()}} with the argument \code{with_ties = TRUE } is used

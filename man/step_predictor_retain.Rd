@@ -46,19 +46,70 @@ may affect the computations for subsequent operations.}
 \item{id}{A character string that is unique to this step to identify it.}
 }
 \description{
-\code{step_predictor_retain()} creates a \emph{specification} of a recipe step that will
-perform feature selection by ...
+\code{step_predictor_retain()} creates a \emph{specification} of a recipe step that
+uses a logical statement that includes one or more scoring functions to
+measure how much each predictor is related to the outcome value. This step
+retains the predictors that pass the logical statement.
 }
 \details{
-This step ...
+The \code{score} should be valid R syntax that produces a logical result and
+should not use external data. The list of variables that can be used is in
+the section below.
+\subsection{Scoring Functions}{
 
-This step can potentially remove columns from the data set. This may
-cause issues for subsequent steps in your recipe if the missing columns are
-specifically referenced by name. To avoid this, see the advice in the
-\emph{Tips for saving recipes and filtering columns} section of
-\link[recipes:selections]{recipes::selections}.
+As of version 0.2.0 of the \pkg{filtro} package, the following score functions are available:
+
+\itemize{
+
+\item \code{aov_fstat} (\code{\link[filtro:score_aov_fstat]{documentation}})
+\item \code{aov_pval} (\code{\link[filtro:score_aov_pval]{documentation}})
+\item \code{cor_pearson} (\code{\link[filtro:score_cor_pearson]{documentation}})
+\item \code{cor_spearman} (\code{\link[filtro:score_cor_spearman]{documentation}})
+\item \code{gain_ratio} (\code{\link[filtro:score_gain_ratio]{documentation}})
+\item \code{imp_rf} (\code{\link[filtro:score_imp_rf]{documentation}})
+\item \code{imp_rf_conditional} (\code{\link[filtro:score_imp_rf_conditional]{documentation}})
+\item \code{imp_rf_oblique} (\code{\link[filtro:score_imp_rf_oblique]{documentation}})
+\item \code{info_gain} (\code{\link[filtro:score_info_gain]{documentation}})
+\item \code{roc_auc} (\code{\link[filtro:score_roc_auc]{documentation}})
+\item \code{sym_uncert} (\code{\link[filtro:score_sym_uncert]{documentation}})
+\item \code{xtab_pval_chisq} (\code{\link[filtro:score_xtab_pval_chisq]{documentation}})
+\item \code{xtab_pval_fisher} (\code{\link[filtro:score_xtab_pval_fisher]{documentation}})
+
 }
-\section{Tidying}{
+
+Some important notes:
+\itemize{
+\item Scores that are p-values are automatically transformed by \pkg{filtro} to
+be in the format \code{-log10(pvalue)} so that a p-value of 0.1 is converted to
+1.0. For these, use the \code{maximize()} goal.
+\item Other scores are also transformed in the data. For example, the correlation
+scores given to the recipe step are in absolute value format. See the
+\pkg{filtro} documentation for each score.
+\item You can use some in-line functions using base R functions. For example,
+\code{maximize(max(score_cor_spearman))}.
+\item If a predictor cannot be computed for all scores, it is given a "fallback
+value" that will prevent it from being excluded for this reason.
+}
+
+This step can potentially remove columns from the data set. This may cause
+issues for subsequent steps in your recipe if the missing columns are
+specifically referenced by name. To avoid this, see the advice in the \emph{Tips
+for saving recipes and filtering columns} section of \link[recipes:selections]{recipes::selections}.
+}
+
+\subsection{Case Weights}{
+
+Case weights can be used by some scoring functions. To learn more, load the
+\pkg{filtro} package and check the \code{case_weights} property of the score object
+(see Examples below). For a recipe, use one of the tidymodels case weight
+functions such as \code{\link[hardhat:importance_weights]{hardhat::importance_weights()}} or
+\link[hardhat:frequency_weights]{hardhat::frequency_weights}, to assign the correct data type to the vector of case
+weights. A recipe will then interpret that class to be a case weight (and no
+other role). A full example is below.
+}
+
+\subsection{Tidy method}{
+
 When you \code{\link[recipes:tidy.recipe]{tidy()}} this step, a tibble::tibble is
 returned with columns \code{terms} and \code{id}:
 
@@ -69,14 +120,14 @@ returned with columns \code{terms} and \code{id}:
 
 The underlying operation does not allow for case weights.
 }
-
+}
 \examples{
 library(recipes)
 
 rec <- recipe(mpg ~ ., data = mtcars) |>
   step_predictor_retain(
     all_predictors(),
-    score = cor_pearson >= 0.75 & cor_spearman >= 0.75
+    score = cor_pearson >= 0.75 | cor_spearman >= 0.75
   )
 
 prepped <- prep(rec)

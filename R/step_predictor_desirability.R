@@ -1,7 +1,7 @@
 #' Supervised Multivariate Feature Selection via Desirability Functions
 #'
 #' `step_predictor_desirability()` creates a *specification* of a recipe step
-#' that uses one or more "score" functions to measure how how much each predictor
+#' that uses one or more "score" functions to measure how much each predictor
 #' is related to the outcome value. These scores are combined into a composite
 #' value using user-specified _desirability_ functions and a proportion of the
 #' most desirable predictors are retained.
@@ -57,6 +57,9 @@
 #' issues for subsequent steps in your recipe if the missing columns are
 #' specifically referenced by name. To avoid this, see the advice in the _Tips
 #' for saving recipes and filtering columns_ section of [recipes::selections].
+#'
+#' ```{r child = "man/rmd/filtro-scores.Rmd"}
+#' ```
 #'
 #' ## Ties
 #'

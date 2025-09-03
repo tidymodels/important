@@ -1,12 +1,14 @@
 #' Supervised Feature Selection via Choosing the Top Predictors
 #'
-#' `step_predictor_best()` creates a *specification* of a recipe step that will
-#' perform feature selection by ...
+#' `step_predictor_best()` creates a *specification* of a recipe step that uses
+#' a single scoring function to measure how much each predictor is related to
+#' the outcome value. This step retains a proportion of the most important
+#' predictors, and this proportion can be tuned.
 #'
 #' @inheritParams step_predictor_desirability
 #'
 #' @param score The name of a single score function from the \pkg{filtro}
-#' package, such as [filtro::score_imp_rf()], [filtro:: score_roc_auc()], etc.
+#' package, such as `"imp_rf"` (for [filtro::score_imp_rf()]), etc.
 #' See the Details and Examples sections below. This argument *should be named*
 #' when used.
 #'
@@ -14,13 +16,46 @@
 #'
 #' @details
 #'
-#' This step ...
+#' ```{r child = "man/rmd/filtro-scores.Rmd"}
+#' ```
 #'
-#' This step can potentially remove columns from the data set. This may
-#' cause issues for subsequent steps in your recipe if the missing columns are
-#' specifically referenced by name. To avoid this, see the advice in the
-#' _Tips for saving recipes and filtering columns_ section of
-#' [recipes::selections].
+#' Some important notes:
+#'
+#' - Scores that are p-values are automatically transformed by \pkg{filtro} to
+#'   be in the format `-log10(pvalue)` so that a p-value of 0.1 is converted to
+#'   1.0. For these, use the `maximize()` goal.
+#'
+#' - Other scores are also transformed in the data. For example, the correlation
+#'   scores given to the recipe step are in absolute value format. See the
+#'   \pkg{filtro} documentation for each score.
+#'
+#'  - You can use some in-line functions using base R functions. For example,
+#'    `maximize(max(score_cor_spearman))`.
+#'
+#' - If a predictor cannot be computed for all scores, it is given a "fallback
+#'   value" that will prevent it from being excluded for this reason.
+#'
+#' This step can potentially remove columns from the data set. This may cause
+#' issues for subsequent steps in your recipe if the missing columns are
+#' specifically referenced by name. To avoid this, see the advice in the _Tips
+#' for saving recipes and filtering columns_ section of [recipes::selections].
+#'
+#'
+#' ## Ties
+#'
+#' Note that [dplyr::slice_max()] with the argument `with_ties = TRUE ` is used
+#' to select predictors. If there are many ties in overall desirability, the
+#' proportion selected can be larger than the value given to `prep_terms()`.
+#'
+#' ## Case Weights
+#'
+#' Case weights can be used by some scoring functions. To learn more, load the
+#' \pkg{filtro} package and check the `case_weights` property of the score object
+#' (see Examples below). For a recipe, use one of the tidymodels case weight
+#' functions such as [hardhat::importance_weights()] or
+#' [hardhat::frequency_weights], to assign the correct data type to the vector of case
+#' weights. A recipe will then interpret that class to be a case weight (and no
+#' other role). A full example is below.
 #'
 #' # Tidying
 #'
