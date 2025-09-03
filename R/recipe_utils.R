@@ -80,7 +80,7 @@ tidy_filtro_rec <- function(x, ...) {
     res <-
       x$results |>
       dplyr::select(-outcome, terms = predictor) |>
-      dplyr::relocate(.removed, .after = c(terms))
+      dplyr::relocate(dplyr::any_of(".removed"), .after = c(terms))
   } else {
     term_names <- sel2char(x$terms)
     res <- tibble::tibble(terms = term_names)
