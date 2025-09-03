@@ -320,7 +320,7 @@ prep.step_predictor_desirability <- function(x, training, info = NULL, ...) {
 
   score_objs <-
     score_objs |>
-    filtro::fill_safe_values() # <- transforms too
+    filtro::fill_safe_values(transform = TRUE)
 
   # The score names include "score_" but the column names don't
   rm_vec <- gsub("^score_", "", score_names)

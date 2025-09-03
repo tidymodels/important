@@ -13,7 +13,8 @@ test_that("step works", {
   cor_pearson_res <- filtro::score_cor_pearson |>
     filtro::fit(mpg ~ ., data = mtcars)
 
-  cor_pearson_res <- cor_pearson_res |> filtro::fill_safe_value()
+  cor_pearson_res <- cor_pearson_res |>
+    filtro::fill_safe_value(transform = TRUE)
   exp <- cor_pearson_res@results |>
     dplyr::slice_max(score, prop = 1 / 2, with_ties = TRUE) |>
     dplyr::pull("predictor")

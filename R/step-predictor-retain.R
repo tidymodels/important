@@ -205,7 +205,7 @@ calculate_predictor_retain <- function(
 
   score_df <- # save for tidy method
     score_res |>
-    filtro::fill_safe_values()
+    filtro::fill_safe_values(transform = TRUE)
 
   # ------------------------------------------------------------------------------
   # filter predictors

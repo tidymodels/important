@@ -201,7 +201,7 @@ calculate_predictor_best <- function(
 
   score_df <- # save for tidy method
     score_res |>
-    filtro::fill_safe_value(return_results = TRUE)
+    filtro::fill_safe_value(return_results = TRUE, transform = TRUE)
 
   # ------------------------------------------------------------------------------
   # filter predictors
