@@ -37,6 +37,8 @@
 #' define _goals_ for each score and pass that to the recipe in the `score`
 #' argument.
 #'
+#' ```{r child = "man/rmd/filtro-scores.Rmd"}
+#' ```
 #' Some important notes:
 #'
 #' - Scores that are p-values are automatically transformed by \pkg{filtro} to
@@ -57,9 +59,6 @@
 #' issues for subsequent steps in your recipe if the missing columns are
 #' specifically referenced by name. To avoid this, see the advice in the _Tips
 #' for saving recipes and filtering columns_ section of [recipes::selections].
-#'
-#' ```{r child = "man/rmd/filtro-scores.Rmd"}
-#' ```
 #'
 #' ## Ties
 #'

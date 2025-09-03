@@ -88,25 +88,6 @@ in \code{\link[desirability2:d_overall]{desirability2::d_overall()}} and \code{\
 To define desirabilities, use \code{\link[desirability2:desirability]{desirability2::desirability()}} function to
 define \emph{goals} for each score and pass that to the recipe in the \code{score}
 argument.
-
-Some important notes:
-\itemize{
-\item Scores that are p-values are automatically transformed by \pkg{filtro} to
-be in the format \code{-log10(pvalue)} so that a p-value of 0.1 is converted to
-1.0. For these, use the \code{maximize()} goal.
-\item Other scores are also transformed in the data. For example, the correlation
-scores given to the recipe step are in absolute value format. See the
-\pkg{filtro} documentation for each score.
-\item You can use some in-line functions using base R functions. For example,
-\code{maximize(max(score_cor_spearman))}.
-\item If a predictor cannot be computed for all scores, it is given a "fallback
-value" that will prevent it from being excluded for this reason.
-}
-
-This step can potentially remove columns from the data set. This may cause
-issues for subsequent steps in your recipe if the missing columns are
-specifically referenced by name. To avoid this, see the advice in the \emph{Tips
-for saving recipes and filtering columns} section of \link[recipes:selections]{recipes::selections}.
 \subsection{Scoring Functions}{
 
 As of version 0.2.0 of the \pkg{filtro} package, the following score functions are available:
@@ -128,6 +109,24 @@ As of version 0.2.0 of the \pkg{filtro} package, the following score functions a
 \item \code{xtab_pval_fisher} (\code{\link[filtro:score_xtab_pval_fisher]{documentation}})
 
 }
+Some important notes:
+\itemize{
+\item Scores that are p-values are automatically transformed by \pkg{filtro} to
+be in the format \code{-log10(pvalue)} so that a p-value of 0.1 is converted to
+1.0. For these, use the \code{maximize()} goal.
+\item Other scores are also transformed in the data. For example, the correlation
+scores given to the recipe step are in absolute value format. See the
+\pkg{filtro} documentation for each score.
+\item You can use some in-line functions using base R functions. For example,
+\code{maximize(max(score_cor_spearman))}.
+\item If a predictor cannot be computed for all scores, it is given a "fallback
+value" that will prevent it from being excluded for this reason.
+}
+
+This step can potentially remove columns from the data set. This may cause
+issues for subsequent steps in your recipe if the missing columns are
+specifically referenced by name. To avoid this, see the advice in the \emph{Tips
+for saving recipes and filtering columns} section of \link[recipes:selections]{recipes::selections}.
 }
 
 \subsection{Ties}{
