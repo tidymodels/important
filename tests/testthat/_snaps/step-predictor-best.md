@@ -18,6 +18,15 @@
       -- Operations 
       * Feature selection via `cor_pearson` on: drat qsec, ... | Trained, weighted
 
+# missing score arg
+
+    Code
+      step_predictor_best(recipe(mpg ~ ., data = mtcars), all_predictors(),
+      prop_terms = 1 / 2)
+    Condition
+      Error in `step_predictor_best()`:
+      ! argument "score" is missing, with no default
+
 # empty printing
 
     Code
@@ -32,7 +41,7 @@
       predictor: 10
       
       -- Operations 
-      * Feature selection on: <none>
+      * Feature selection via `cor_pearson` on: <none>
 
 ---
 
@@ -51,7 +60,7 @@
       Training data contained 32 data points and no incomplete rows.
       
       -- Operations 
-      * Feature selection on: <none> | Trained
+      * Feature selection via `cor_pearson` on: <none> | Trained
 
 # printing
 
@@ -91,7 +100,8 @@
 # bad args
 
     Code
-      prep(step_predictor_best(recipe(mpg ~ ., mtcars), all_predictors(), prop_terms = 2))
+      prep(step_predictor_best(recipe(mpg ~ ., mtcars), all_predictors(), prop_terms = 2,
+      score = "cor_pearson"))
     Condition
       Error in `step_predictor_best()`:
       Caused by error in `prep()`:

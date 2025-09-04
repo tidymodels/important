@@ -116,6 +116,17 @@ test_that("case weights work", {
   expect_false(isTRUE(all.equal(both_res$weighted, both_res$unweighted)))
 })
 
+test_that("missing score arg", {
+  expect_snapshot(
+    error = TRUE,
+    recipe(mpg ~ ., data = mtcars) |>
+      step_predictor_best(
+        all_predictors(),
+        prop_terms = 1 / 2
+      )
+  )
+})
+
 # Infrastructure ---------------------------------------------------------------
 test_that("bake method errors when needed non-standard role columns are missing", {
   # Here for completeness
@@ -125,7 +136,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
 test_that("empty printing", {
   rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_predictor_best(rec)
+  rec <- step_predictor_best(rec, score = "cor_pearson")
 
   expect_snapshot(rec)
 
@@ -136,7 +147,7 @@ test_that("empty printing", {
 
 test_that("empty selection prep/bake is a no-op", {
   rec1 <- recipe(mpg ~ ., mtcars)
-  rec2 <- step_predictor_best(rec1)
+  rec2 <- step_predictor_best(rec1, score = "cor_pearson")
 
   rec1 <- prep(rec1, mtcars)
   rec2 <- prep(rec2, mtcars)
@@ -149,7 +160,7 @@ test_that("empty selection prep/bake is a no-op", {
 
 test_that("empty selection tidy method works", {
   rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_predictor_best(rec)
+  rec <- step_predictor_best(rec, score = "cor_pearson")
 
   expect <- tibble(terms = character(), id = character())
 
@@ -183,7 +194,11 @@ test_that("tunable is setup to work with extract_parameter_set_dials", {
 test_that("bad args", {
   expect_snapshot(
     recipe(mpg ~ ., mtcars) |>
-      step_predictor_best(all_predictors(), prop_terms = 2) |>
+      step_predictor_best(
+        all_predictors(),
+        prop_terms = 2,
+        score = "cor_pearson"
+      ) |>
       prep(),
     error = TRUE
   )

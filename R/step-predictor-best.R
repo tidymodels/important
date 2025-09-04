@@ -108,7 +108,7 @@ step_predictor_best <- function(
     recipe,
     step_predictor_best_new(
       terms = enquos(...),
-      score = rlang::enexpr(score), # Or score = score?
+      score = score,
       role = role,
       trained = trained,
       prop_terms = prop_terms,
