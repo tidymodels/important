@@ -117,6 +117,7 @@ test_that("case weights work", {
 })
 
 test_that("missing score arg", {
+  skip_if(getRversion() <= "4.3.0")
   expect_snapshot(
     error = TRUE,
     recipe(mpg ~ ., data = mtcars) |>
@@ -183,7 +184,11 @@ test_that("printing", {
 test_that("tunable is setup to work with extract_parameter_set_dials", {
   skip_if_not_installed("dials", minimum_version = "1.4.1.9000")
   rec <- recipe(~., data = mtcars) |>
-    step_predictor_best(all_predictors(), prop_terms = hardhat::tune())
+    step_predictor_best(
+      all_predictors(),
+      score = "cor_pearson",
+      prop_terms = hardhat::tune()
+    )
 
   params <- extract_parameter_set_dials(rec)
 
