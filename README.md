@@ -21,6 +21,20 @@ features:
   predictors columns are easily parallelized.
 - The results are returned in a tidy format.
 
+There are also recipe steps for supervised feature selection:
+
+- `step_predictors_retain()` can filter the predictors using a single
+  conditional statement (e.g., absolute correlation with the outcome \>
+  0.75, etc).
+- `step_predictors_best()` can retain the most important predictors for
+  the outcome using a single scoring function.
+- `step_predictors_desirability()` retains the most important predictors
+  for the outcome using multiple scoring functions, blended using
+  desirability functions.
+
+The latter two steps can be tuned over the proportion of predictors to
+be retained.
+
 ## Installation
 
 You can install the development version of important from
@@ -41,7 +55,7 @@ were evaluated at different time points. This was a substantial change
 for us, and it would have been even more challenging to add to other
 packages.
 
-## Example
+## Variable importance Example
 
 Let’s look at an analysis that models [food delivery
 times](https://aml4td.org/chapters/whole-game.html#sec-delivery-times).
@@ -182,6 +196,93 @@ autoplot(lm_orig_imp)
 ```
 
 <img src="man/figures/README-original-plot-1.png" width="100%" />
+
+## Supervised Feature Selection Example
+
+Using the same dataset, let’s illustrate the most common tool for
+filtering predictors: using random forest importance scores.
+
+important can use any of the “scoring functions” from the
+[filtro](https://filtro.tidymodels.org/) package. You can supply one,
+and the proportion of the predictors to retain:
+
+``` r
+set.seed(491)
+selection_rec <- 
+    recipe(time_to_delivery ~ ., data = delivery_train) |> 
+    step_predictor_best(all_predictors(), score = "imp_rf", prop_terms = 1/4) |> 
+    step_dummy(all_factor_predictors()) |> 
+    step_zv(all_predictors()) |> 
+    step_spline_natural(any_of(c("hour", "distance")), deg_free = 10) |> 
+    step_interact(~ starts_with("hour_"):starts_with("day_")) |> 
+    prep()
+selection_rec
+#> 
+#> ── Recipe ──────────────────────────────────────────────────────────────────────
+#> 
+#> ── Inputs
+#> Number of variables by role
+#> outcome:    1
+#> predictor: 30
+#> 
+#> ── Training information
+#> Training data contained 6004 data points and no incomplete rows.
+#> 
+#> ── Operations
+#> • Feature selection via `imp_rf` on: item_03 item_04, ... | Trained
+#> • Dummy variables from: day | Trained
+#> • Zero variance filter removed: <none> | Trained
+#> • Natural spline expansion: hour distance | Trained
+#> • Interactions with: hour_01:day_Tue hour_01:day_Wed, ... | Trained
+```
+
+A list of possible scores is contained in the help page for the recipe
+steps.
+
+Note that we changed selectors in `step_spline_natural()` to use
+`any_of()` instead of specific names. Any step downstream of any
+filtering steps should be generalized so that there is no failure if the
+columns were removed. Using `any_of()` selects these two columns *if
+they still remain in the data*.
+
+Which were removed?
+
+``` r
+selection_res <- 
+    tidy(selection_rec, number = 1) |> 
+    arrange(desc(score))
+
+selection_res
+#> # A tibble: 30 × 4
+#>    terms    removed   score id                  
+#>    <chr>    <lgl>     <dbl> <chr>               
+#>  1 hour     FALSE   48.5    predictor_best_rCIMa
+#>  2 day      FALSE   13.5    predictor_best_rCIMa
+#>  3 distance FALSE   13.3    predictor_best_rCIMa
+#>  4 item_10  FALSE    1.18   predictor_best_rCIMa
+#>  5 item_01  FALSE    1.01   predictor_best_rCIMa
+#>  6 item_24  FALSE    0.160  predictor_best_rCIMa
+#>  7 item_02  FALSE    0.0676 predictor_best_rCIMa
+#>  8 item_26  TRUE     0.0666 predictor_best_rCIMa
+#>  9 item_03  TRUE     0.0593 predictor_best_rCIMa
+#> 10 item_22  TRUE     0.0565 predictor_best_rCIMa
+#> # ℹ 20 more rows
+
+mean(selection_res$removed)
+#> [1] 0.7666667
+```
+
+This example shows the basic usage of the recipe. In practice, we would
+probably do things differently:
+
+- This step would be included in a workflow so that it is coupled to a
+  model.
+- It would be a good idea to optimize how much selection is done by
+  setting `prop_terms = tune()` in the step and using one of the tuning
+  functions to find a good proportion.
+
+*Inappropriate* use of these selection steps occurs when it is used
+before the data are split or outside of a resampling step.
 
 ## Code of Conduct
 

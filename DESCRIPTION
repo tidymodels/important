@@ -43,6 +43,7 @@ Suggests:
     mirai,
     modeldata,
     parsnip,
+    ranger, 
     spelling,
     survival,
     testthat (>= 3.0.0),
