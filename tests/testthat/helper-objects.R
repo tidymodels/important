@@ -104,5 +104,5 @@ POTATO <- function(x) {
 
 goals <-
 	desirability2::desirability(
-		maximize(score_cor_pearson),
-		constrain(score_cor_spearman, low = 0.7, high = 1))
+		maximize(cor_pearson),
+		constrain(cor_spearman, low = 0.7, high = 1))

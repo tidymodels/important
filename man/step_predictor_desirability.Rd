@@ -118,7 +118,7 @@ be in the format \code{-log10(pvalue)} so that a p-value of 0.1 is converted to
 scores given to the recipe step are in absolute value format. See the
 \pkg{filtro} documentation for each score.
 \item You can use some in-line functions using base R functions. For example,
-\code{maximize(max(score_cor_spearman))}.
+\code{maximize(max(cor_spearman))}.
 \item If a predictor cannot be computed for all scores, it is given a "fallback
 value" that will prevent it from being excluded for this reason.
 }
@@ -183,10 +183,10 @@ if (rlang::is_installed("modeldata")) {
 
 	# The score_* objects here are from the filtro package. See Details above.
 	goals <-
-   desirability(
-     maximize(score_xtab_pval_fisher),
-     maximize(score_aov_pval)
-  )
+		desirability(
+			maximize(xtab_pval_fisher),
+			maximize(aov_pval)
+		)
 
 	example_data <- modeldata::ad_data
 	rec <-
@@ -194,7 +194,7 @@ if (rlang::is_installed("modeldata")) {
 		step_predictor_desirability(
 			all_predictors(),
 			score = goals,
-			prop_terms = 1/2
+			prop_terms = 1 / 2
 		)
 	rec
 
@@ -207,57 +207,60 @@ if (rlang::is_installed("modeldata")) {
 	mean(predictor_scores$.removed)
 	predictor_scores
 
- # --------------------------------------------------------------------------
+	# --------------------------------------------------------------------------
 
- # Case-weight example: use the hardhat package to create the appropriate type
- # of case weights. Here, we'll increase the weights for the minority class and
- # add them to the data frame.
+	# Case-weight example: use the hardhat package to create the appropriate type
+	# of case weights. Here, we'll increase the weights for the minority class and
+	# add them to the data frame.
 
- library(hardhat)
+	library(hardhat)
 
- example_weights <- example_data
- weights <- ifelse(example_data$Class == "Impaired", 5, 1)
- example_weights$weights <- importance_weights(weights)
+	example_weights <- example_data
+	weights <- ifelse(example_data$Class == "Impaired", 5, 1)
+	example_weights$weights <- importance_weights(weights)
 
- # To see if the scores can use case weights, load the filtro package and
- # check the `case_weights` property:
+	# To see if the scores can use case weights, load the filtro package and
+	# check the `case_weights` property:
 
- library(filtro)
+	library(filtro)
 
- score_xtab_pval_fisher@case_weights
- score_aov_pval@case_weights
+	score_xtab_pval_fisher@case_weights
+	score_aov_pval@case_weights
 
- # The recipe will automatically find the case weights and will
- # not treat them as predictors.
- rec_wts <-
- 	recipe(Class ~ ., data = example_weights) |>
- 	step_predictor_desirability(
- 		all_predictors(),
- 		score = goals,
- 		prop_terms = 1/2
- 	) |>
- 	prep()
- rec_wts
+	# The recipe will automatically find the case weights and will
+	# not treat them as predictors.
+	rec_wts <-
+		recipe(Class ~ ., data = example_weights) |>
+		step_predictor_desirability(
+			all_predictors(),
+			score = goals,
+			prop_terms = 1 / 2
+		) |>
+		prep()
+	rec_wts
 
- predictor_scores_wts <-
- 	tidy(rec_wts, number = 1) |>
- 	select(terms, .d_overall_weighted = .d_overall)
+	predictor_scores_wts <-
+		tidy(rec_wts, number = 1) |>
+		select(terms, .d_overall_weighted = .d_overall)
 
- library(dplyr)
- library(ggplot2)
+	library(dplyr)
+	library(ggplot2)
 
- # The selection did not substantially change with these case weights
- full_join(predictor_scores, predictor_scores_wts, by = "terms") |>
- 	ggplot(aes(.d_overall, .d_overall_weighted)) +
- 	geom_abline(col = "darkgreen", lty = 2) +
- 	geom_point(alpha = 1 / 2) +
- 	coord_fixed(ratio = 1) +
- 	labs(x = "Unweighted", y = "Class Weighted")
+	# The selection did not substantially change with these case weights
+	full_join(predictor_scores, predictor_scores_wts, by = "terms") |>
+		ggplot(aes(.d_overall, .d_overall_weighted)) +
+		geom_abline(col = "darkgreen", lty = 2) +
+		geom_point(alpha = 1 / 2) +
+		coord_fixed(ratio = 1) +
+		labs(x = "Unweighted", y = "Class Weighted")
 }
+
 }
 \references{
 Derringer, G. and Suich, R. (1980), Simultaneous Optimization of
 Several Response Variables. \emph{Journal of Quality Technology}, 12, 214-219.
+
+\url{https://desirability2.tidymodels.org/reference/inline_desirability.html}
 }
 \seealso{
 \code{\link[desirability2:desirability]{desirability2::desirability()}}

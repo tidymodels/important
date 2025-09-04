@@ -1,3 +1,7 @@
+# wrong score type
+
+    All score computations failed; skipping feature selection.
+
 # empty printing
 
     Code

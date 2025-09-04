@@ -92,3 +92,9 @@ tidy_filtro_rec <- function(x, ...) {
   res$id <- x$id
   res
 }
+
+all_scores_missing <- function(x) {
+	scores <- dplyr::select(x, -outcome, -predictor)
+	all_missing <- purrr::map_lgl(scores, ~ all(is.na(.x)))
+	all(all_missing)
+}

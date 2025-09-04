@@ -50,7 +50,7 @@
 #'   \pkg{filtro} documentation for each score.
 #'
 #'  - You can use some in-line functions using base R functions. For example,
-#'    `maximize(max(score_cor_spearman))`.
+#'    `maximize(max(cor_spearman))`.
 #'
 #' - If a predictor cannot be computed for all scores, it is given a "fallback
 #'   value" that will prevent it from being excluded for this reason.
@@ -109,6 +109,8 @@
 #' @seealso [desirability2::desirability()]
 #' @references Derringer, G. and Suich, R. (1980), Simultaneous Optimization of
 #'  Several Response Variables. _Journal of Quality Technology_, 12, 214-219.
+#'
+#' [https://desirability2.tidymodels.org/reference/inline_desirability.html](https://desirability2.tidymodels.org/reference/inline_desirability.html)
 #' @examples
 #' library(recipes)
 #' library(desirability2)
@@ -125,10 +127,10 @@
 #'
 #' 	# The score_* objects here are from the filtro package. See Details above.
 #' 	goals <-
-#'    desirability(
-#'      maximize(score_xtab_pval_fisher),
-#'      maximize(score_aov_pval)
-#'   )
+#' 		desirability(
+#' 			maximize(xtab_pval_fisher),
+#' 			maximize(aov_pval)
+#' 		)
 #'
 #' 	example_data <- modeldata::ad_data
 #' 	rec <-
@@ -136,7 +138,7 @@
 #' 		step_predictor_desirability(
 #' 			all_predictors(),
 #' 			score = goals,
-#' 			prop_terms = 1/2
+#' 			prop_terms = 1 / 2
 #' 		)
 #' 	rec
 #'
@@ -149,53 +151,54 @@
 #' 	mean(predictor_scores$.removed)
 #' 	predictor_scores
 #'
-#'  # --------------------------------------------------------------------------
+#' 	# --------------------------------------------------------------------------
 #'
-#'  # Case-weight example: use the hardhat package to create the appropriate type
-#'  # of case weights. Here, we'll increase the weights for the minority class and
-#'  # add them to the data frame.
+#' 	# Case-weight example: use the hardhat package to create the appropriate type
+#' 	# of case weights. Here, we'll increase the weights for the minority class and
+#' 	# add them to the data frame.
 #'
-#'  library(hardhat)
+#' 	library(hardhat)
 #'
-#'  example_weights <- example_data
-#'  weights <- ifelse(example_data$Class == "Impaired", 5, 1)
-#'  example_weights$weights <- importance_weights(weights)
+#' 	example_weights <- example_data
+#' 	weights <- ifelse(example_data$Class == "Impaired", 5, 1)
+#' 	example_weights$weights <- importance_weights(weights)
 #'
-#'  # To see if the scores can use case weights, load the filtro package and
-#'  # check the `case_weights` property:
+#' 	# To see if the scores can use case weights, load the filtro package and
+#' 	# check the `case_weights` property:
 #'
-#'  library(filtro)
+#' 	library(filtro)
 #'
-#'  score_xtab_pval_fisher@case_weights
-#'  score_aov_pval@case_weights
+#' 	score_xtab_pval_fisher@case_weights
+#' 	score_aov_pval@case_weights
 #'
-#'  # The recipe will automatically find the case weights and will
-#'  # not treat them as predictors.
-#'  rec_wts <-
-#'  	recipe(Class ~ ., data = example_weights) |>
-#'  	step_predictor_desirability(
-#'  		all_predictors(),
-#'  		score = goals,
-#'  		prop_terms = 1/2
-#'  	) |>
-#'  	prep()
-#'  rec_wts
+#' 	# The recipe will automatically find the case weights and will
+#' 	# not treat them as predictors.
+#' 	rec_wts <-
+#' 		recipe(Class ~ ., data = example_weights) |>
+#' 		step_predictor_desirability(
+#' 			all_predictors(),
+#' 			score = goals,
+#' 			prop_terms = 1 / 2
+#' 		) |>
+#' 		prep()
+#' 	rec_wts
 #'
-#'  predictor_scores_wts <-
-#'  	tidy(rec_wts, number = 1) |>
-#'  	select(terms, .d_overall_weighted = .d_overall)
+#' 	predictor_scores_wts <-
+#' 		tidy(rec_wts, number = 1) |>
+#' 		select(terms, .d_overall_weighted = .d_overall)
 #'
-#'  library(dplyr)
-#'  library(ggplot2)
+#' 	library(dplyr)
+#' 	library(ggplot2)
 #'
-#'  # The selection did not substantially change with these case weights
-#'  full_join(predictor_scores, predictor_scores_wts, by = "terms") |>
-#'  	ggplot(aes(.d_overall, .d_overall_weighted)) +
-#'  	geom_abline(col = "darkgreen", lty = 2) +
-#'  	geom_point(alpha = 1 / 2) +
-#'  	coord_fixed(ratio = 1) +
-#'  	labs(x = "Unweighted", y = "Class Weighted")
+#' 	# The selection did not substantially change with these case weights
+#' 	full_join(predictor_scores, predictor_scores_wts, by = "terms") |>
+#' 		ggplot(aes(.d_overall, .d_overall_weighted)) +
+#' 		geom_abline(col = "darkgreen", lty = 2) +
+#' 		geom_point(alpha = 1 / 2) +
+#' 		coord_fixed(ratio = 1) +
+#' 		labs(x = "Unweighted", y = "Class Weighted")
 #' }
+#'
 step_predictor_desirability <- function(
   recipe,
   ...,
@@ -305,7 +308,9 @@ prep.step_predictor_desirability <- function(x, training, info = NULL, ...) {
     wts <- NULL
   }
 
-  score_names <- check_score_names(unlist(x$score@variables))
+  var_names <- unique(unlist(x$score@variables))
+  score_names <- paste0("score_", var_names)
+  score_names <- check_score_names(score_names)
   outcome_name <- pull_outcome_column_name(info)
   fm <- paste(outcome_name, "~ .")
   fm <- stats::as.formula(fm)
@@ -317,25 +322,25 @@ prep.step_predictor_desirability <- function(x, training, info = NULL, ...) {
     )
   raw_scores <- filtro::bind_scores(score_objs)
 
-  score_objs <-
-    score_objs |>
-    filtro::fill_safe_values(transform = TRUE)
+  score_df <-
+  	score_objs |>
+  	filtro::fill_safe_values(transform = TRUE)
 
-  # The score names include "score_" but the column names don't
-  rm_vec <- gsub("^score_", "", score_names)
-  names(rm_vec) <- score_names
-  score_objs <- dplyr::rename(score_objs, rm_vec)
-
-  # make desirability expression/eval quosure
-  score_df <- desirability2::make_desirability_cols(x$score, score_objs)
-
-  bad_news <- purrr::map_lgl(score_df$.d_overall, ~ identical(.x, 0.0))
-  if (all(bad_news)) {
-  	keep_list <- score_df[0,]
+  if (all_scores_missing(raw_scores)) {
+  	cli::cli_warn("All score computations failed; skipping feature selection.")
+  	keep_list <- score_df
   } else {
-  	keep_list <-
-  		score_df |>
-  		dplyr::slice_max(.d_overall, prop = x$prop_terms, with_ties = TRUE)
+  	# make desirability expression/eval quosure
+  	score_df <- desirability2::make_desirability_cols(x$score, score_df)
+
+  	bad_news <- purrr::map_lgl(score_df$.d_overall, ~ identical(.x, 0.0))
+  	if (all(bad_news)) {
+  		keep_list <- score_df[0,]
+  	} else {
+  		keep_list <-
+  			score_df |>
+  			dplyr::slice_max(.d_overall, prop = x$prop_terms, with_ties = TRUE)
+  	}
   }
 
   rm_list <-
@@ -345,8 +350,10 @@ prep.step_predictor_desirability <- function(x, training, info = NULL, ...) {
   score_df$.removed <- score_df$predictor %in% rm_list
 
   score_df <- score_df |>
+  	dplyr::select(outcome, predictor, .removed, dplyr::starts_with(".d_")) |>
     dplyr::full_join(raw_scores, by = c("outcome", "predictor")) |>
-    dplyr::relocate(.removed, .after = "predictor")
+    dplyr::relocate(.removed, .after = "predictor") |>
+  	dplyr::relocate(dplyr::starts_with(".d_"), .after = dplyr::everything())
 
   step_predictor_desirability_new(
     terms = x$terms,
@@ -375,8 +382,7 @@ print.step_predictor_desirability <- function(
   width = max(20, options()$width - 36),
   ...
 ) {
-  scores <- purrr::map_chr(x$score@variables, ~ gsub("score_", "", .x))
-  scores <- unique(scores)
+  scores <- unique(x$score@variables)
 
   title <- cli::format_inline(
     "Feature selection via desirability functions ({.code {scores}}) on"

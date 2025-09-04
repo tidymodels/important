@@ -10,7 +10,7 @@ test_that("step works", {
 	prepped <- prep(rec)
 
 	res_bake <- bake(prepped, mtcars)
-	# res_tidy <- tidy(prepped, 1)
+	res_tidy <- tidy(prepped, 1)
 
 	score_res <-
 		list(
@@ -31,20 +31,21 @@ test_that("step works", {
 		sort(setdiff(names(mtcars)[-1], retained$predictor))
 	)
 
-	# expect_identical(
-	# 	sort(res_tidy$terms[res_tidy$.removed]),
-	# 	sort(setdiff(names(mtcars)[-1], exp))
-	# )
-	# expect_named(
-	# 	res_tidy,
-	# 	c("terms", ".removed", "score", "id")
-	# )
+	expect_identical(
+		sort(res_tidy$terms[res_tidy$.removed]),
+		sort(setdiff(names(mtcars)[-1], retained$predictor))
+	)
+	expect_named(
+		res_tidy,
+		c("terms", ".removed", "cor_pearson", "cor_spearman", ".d_max_cor_pearson",
+			".d_box_cor_spearman", ".d_overall", "id")
+	)
 })
 
 test_that("EVERYTHING MUST GO", {
 	bad_goals <-
 		desirability2::desirability(
-			constrain(score_cor_spearman, low = 2, high = 3))
+			constrain(cor_spearman, low = 2, high = 3))
 
 	set.seed(1)
 	rec <- recipe(mpg ~., data = mtcars) |>
@@ -68,18 +69,50 @@ test_that("EVERYTHING MUST GO", {
 		sort(res_tidy$terms[res_tidy$.removed]),
 		sort(names(mtcars)[-1])
 	)
-	# TODO max fix
-	# expect_named(
-	# 	res_tidy,
-	# 	c("terms", ".removed", "score", "id")
-	# )
+	expect_named(
+		res_tidy,
+		c("terms", ".removed", "cor_spearman", ".d_box_cor_spearman", ".d_overall", "id")
+	)
 
+})
+
+test_that("wrong score type", {
+	wrong_goals <-
+		desirability2::desirability(
+			maximize(xtab_pval_fisher))
+
+	set.seed(1)
+	rec <- recipe(mpg ~., data = mtcars) |>
+		step_predictor_desirability(
+			all_predictors(),
+			score = wrong_goals,
+			prop_terms = 0.2
+		)
+
+	expect_snapshot_warning(prepped <- prep(rec))
+
+	res_bake <- bake(prepped, mtcars)
+	res_tidy <- tidy(prepped, 1)
+
+	expect_identical(
+		sort(names(res_bake)),
+		sort(names(mtcars))
+	)
+
+	expect_identical(
+		sort(res_tidy$terms[res_tidy$.removed]),
+		character(0)
+	)
+	expect_named(
+		res_tidy,
+		c("terms", ".removed", "xtab_pval_fisher", "id")
+	)
 })
 
 test_that("keep everything", {
 	easy_goals <-
 		desirability2::desirability(
-			constrain(score_cor_spearman, low = -2, high = 3))
+			constrain(cor_spearman, low = -2, high = 3))
 
 	set.seed(1)
 	rec <- recipe(mpg ~., data = mtcars) |>
@@ -103,11 +136,10 @@ test_that("keep everything", {
 		sort(res_tidy$terms[res_tidy$.removed]),
 		character(0)
 	)
-	# TODO max fix
-	# expect_named(
-	# 	res_tidy,
-	# 	c("terms", ".removed", "score", "id")
-	# )
+	expect_named(
+		res_tidy,
+		c("terms", ".removed", "cor_spearman", ".d_box_cor_spearman", ".d_overall", "id")
+	)
 
 })
 
