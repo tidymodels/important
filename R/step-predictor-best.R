@@ -237,7 +237,7 @@ calculate_predictor_best <- function(
       dplyr::slice_min(score, prop = prop_terms, with_ties = TRUE)
     fallback_col <- score_df$predictor[which.min(score_df$score)[1]]
   }
-  keepers <- keepers |> dplyr::pull("predictor")
+  keepers <- keepers |> dplyr::pull(predictor)
 
   if (length(keepers) == 0) {
     keepers <- score_df$predictors[score_df$predictors != fallback_col]

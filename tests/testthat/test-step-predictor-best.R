@@ -17,7 +17,7 @@ test_that("step works", {
     filtro::fill_safe_value(transform = TRUE)
   exp <- cor_pearson_res@results |>
     dplyr::slice_max(score, prop = 1 / 2, with_ties = TRUE) |>
-    dplyr::pull("predictor")
+  	dplyr::pull(predictor)
 
   expect_identical(
     sort(setdiff(names(mtcars), names(res_bake))),
@@ -89,7 +89,7 @@ test_that("printing", {
 })
 
 test_that("tunable is setup to work with extract_parameter_set_dials", {
-  skip_if_not_installed("dials")
+  skip_if_not_installed("dials", minimum_version = "1.4.1.9000")
   rec <- recipe(~., data = mtcars) |>
     step_predictor_best(all_predictors(), prop_terms = hardhat::tune())
 

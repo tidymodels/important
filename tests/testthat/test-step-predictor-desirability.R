@@ -203,7 +203,7 @@ test_that("printing", {
 })
 
 test_that("tunable is setup to work with extract_parameter_set_dials", {
-	skip_if_not_installed("dials")
+	skip_if_not_installed("dials", minimum_version = "1.4.1.9000")
 
 	rec <- recipe( ~ ., data = mtcars) |>
 		step_predictor_desirability(all_predictors(),

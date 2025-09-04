@@ -15,11 +15,11 @@ test_that("step works", {
     filtro::fit(mpg ~ ., data = mtcars)
 
   exp <- filtro::fill_safe_values(list(
-    cor_pearson_res,
-    cor_spearman_res
+  	cor_pearson_res,
+  	cor_spearman_res
   )) |>
-    dplyr::filter(abs(cor_pearson) < 0.75 | abs(cor_spearman) < 0.6) |>
-    dplyr::pull(predictor)
+  	dplyr::filter(abs(cor_pearson) < 0.75 | abs(cor_spearman) < 0.6) |>
+  	dplyr::pull(predictor)
 
   expect_identical(
     sort(setdiff(names(mtcars), names(res_bake))),
@@ -75,7 +75,7 @@ test_that("allows for one score", {
 
   exp <- cor_pearson_res@results |>
     dplyr::filter(abs(score) < 0.7) |>
-    dplyr::pull(predictor)
+  	dplyr::pull(predictor)
 
   expect_identical(
     sort(setdiff(names(mtcars), names(res_bake))),

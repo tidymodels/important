@@ -222,7 +222,7 @@ calculate_predictor_retain <- function(
   # ------------------------------------------------------------------------------
   # filter predictors
 
-  keepers <- score_df |> dplyr::filter(!!xpr) |> purrr::pluck("predictor")
+  keepers <- score_df |> dplyr::filter(!!xpr) |> dplyr::pull(predictor)
 
   # if (length(keepers) == 0) {
   #   first_score <- all.vars(xpr)[1]

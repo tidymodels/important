@@ -345,7 +345,7 @@ prep.step_predictor_desirability <- function(x, training, info = NULL, ...) {
 
   rm_list <-
     dplyr::anti_join(score_df, keep_list[, "predictor"], by = "predictor") |>
-    purrr::pluck("predictor")
+  	dplyr::pull(predictor)
 
   score_df$.removed <- score_df$predictor %in% rm_list
 
