@@ -205,6 +205,7 @@ test_that("bake method errors when needed non-standard role columns are missing"
 })
 
 test_that("empty printing", {
+  skip_if(getRversion() <= "4.3.0")
   rec <- recipe(mpg ~ ., mtcars)
   expect_snapshot(step_predictor_desirability(rec), error = TRUE)
   # TODO should this error?
