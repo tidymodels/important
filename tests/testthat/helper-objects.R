@@ -6,6 +6,7 @@ suppressPackageStartupMessages(library(parsnip)) # imported by tune
 suppressPackageStartupMessages(library(yardstick)) # imported by tune
 suppressPackageStartupMessages(library(filtro))
 suppressPackageStartupMessages(library(desirability2))
+suppressPackageStartupMessages(library(S7))
 
 # ------------------------------------------------------------------------------
 # regression examples
