@@ -25,12 +25,12 @@ test_that("step works", {
   )
 
   expect_identical(
-    sort(res_tidy$terms[res_tidy$.removed]),
+    sort(res_tidy$terms[res_tidy$removed]),
     sort(setdiff(names(mtcars)[-1], exp))
   )
   expect_named(
     res_tidy,
-    c("terms", ".removed", "score", "id")
+    c("terms", "removed", "score", "id")
   )
 })
 
@@ -52,11 +52,11 @@ test_that("EVERYTHING MUST GO", {
     sort(names(mtcars)[-1])
   )
   expect_true(
-    all(res_tidy$.removed)
+    all(res_tidy$removed)
   )
   expect_named(
     res_tidy,
-    c("terms", ".removed", "score", "id")
+    c("terms", "removed", "score", "id")
   )
 })
 
@@ -80,12 +80,12 @@ test_that("keep everything", {
   )
 
   expect_identical(
-    sort(res_tidy$terms[res_tidy$.removed]),
+    sort(res_tidy$terms[res_tidy$removed]),
     character(0)
   )
   expect_named(
     res_tidy,
-    c("terms", ".removed", "score", "id")
+    c("terms", "removed", "score", "id")
   )
 })
 

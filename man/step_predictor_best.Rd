@@ -58,6 +58,18 @@ may affect the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
 }
+\value{
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations. When you
+\code{\link[recipes:tidy.recipe]{tidy()}} this step, a tibble::tibble is returned
+with columns \code{terms} and \code{id}:
+
+\describe{
+\item{terms}{character, the selectors or variables selected to be removed}
+\item{id}{character, id of this step}
+}
+Once trained, additional columns are included (see Details section).
+}
 \description{
 \code{step_predictor_best()} creates a \emph{specification} of a recipe step that uses
 a single scoring function to measure how much each predictor is related to
@@ -124,17 +136,18 @@ functions such as \code{\link[hardhat:importance_weights]{hardhat::importance_we
 weights. A recipe will then interpret that class to be a case weight (and no
 other role). A full example is below.
 }
-}
-\section{Tidying}{
-When you \code{\link[recipes:tidy.recipe]{tidy()}} this step, a tibble::tibble is
-returned with columns \code{terms} and \code{id}:
 
-\describe{
-\item{terms}{character, the selectors or variables selected to be removed}
-\item{id}{character, id of this step}
-}
-}
+\subsection{Tidy method}{
 
+For a trained recipe, the \code{tidy()} method will return a tibble with columns
+\code{terms} (the predictor names), \code{id}, and columns for the estimated scores.
+The score columns are the raw values, before being filled with "safe values"
+or transformed.
+
+There is an additional local column called \code{removed} that notes whether the
+predictor failed the filter and was removed after this step is executed.
+}
+}
 \examples{
 library(recipes)
 

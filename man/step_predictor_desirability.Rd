@@ -151,20 +151,15 @@ other role). A full example is below.
 
 For a trained recipe, the \code{tidy()} method will return a tibble with columns
 \code{terms} (the predictor names), \code{id}, columns for the estimated scores, and
-the desirability results.
-
-There are two versions of the score results. The columns prefixed with
-\code{"score_1"} have been altered with their transformation (see the Details page
-for each score) and have had missing values filled with "safe" values to
-prevent them from being missing. The other set of scores lack the prefix and
-are the original, raw score values.
+the desirability results. The score columns are the raw values, before being
+filled with "safe values" or transformed.
 
 The desirability columns will have the same name as the scores with an
 additional prefix of \code{.d_}. The overall desirability column is called
 \code{.d_overall}.
 
-There is an additional local column called \code{retain} that notes whether the
-predictor passed the filter and is retained after this step is executed.
+There is an additional local column called \code{removed} that notes whether the
+predictor failed the filter and was removed after this step is executed.
 }
 }
 \examples{
@@ -204,7 +199,7 @@ if (rlang::is_installed("modeldata")) {
 
 	# Use the tidy() method to get the results:
 	predictor_scores <- tidy(prepped, number = 1)
-	mean(predictor_scores$.removed)
+	mean(predictor_scores$removed)
 	predictor_scores
 
 	# --------------------------------------------------------------------------

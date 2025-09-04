@@ -1,3 +1,23 @@
+# case weights work
+
+    Code
+      print(weighted)
+    Message
+      
+      -- Recipe ----------------------------------------------------------------------
+      
+      -- Inputs 
+      Number of variables by role
+      outcome:       1
+      predictor:    10
+      case_weights:  1
+      
+      -- Training information 
+      Training data contained 32 data points and no incomplete rows.
+      
+      -- Operations 
+      * Feature selection via `cor_pearson` on: drat qsec, ... | Trained, weighted
+
 # empty printing
 
     Code

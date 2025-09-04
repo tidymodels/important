@@ -77,14 +77,14 @@ update_prop <- function(num_cols, prop) {
 
 tidy_filtro_rec <- function(x, ...) {
   if (is_trained(x)) {
-  	if (is.null(x$results)) {
-  		res <- tibble::tibble(terms = character(), id = character())
-  	} else {
-  		res <-
-  			x$results |>
-  			dplyr::select(-outcome, terms = predictor) |>
-  			dplyr::relocate(dplyr::any_of(".removed"), .after = c(terms))
-  	}
+    if (is.null(x$results)) {
+      res <- tibble::tibble(terms = character(), id = character())
+    } else {
+      res <-
+        x$results |>
+        dplyr::select(-outcome, terms = predictor) |>
+        dplyr::relocate(dplyr::any_of("removed"), .after = c(terms))
+    }
   } else {
     term_names <- sel2char(x$terms)
     res <- tibble::tibble(terms = term_names)
@@ -94,7 +94,7 @@ tidy_filtro_rec <- function(x, ...) {
 }
 
 all_scores_missing <- function(x) {
-	scores <- dplyr::select(x, -outcome, -predictor)
-	all_missing <- purrr::map_lgl(scores, ~ all(is.na(.x)))
-	all(all_missing)
+  scores <- dplyr::select(x, -outcome, -predictor)
+  all_missing <- purrr::map_lgl(scores, ~ all(is.na(.x)))
+  all(all_missing)
 }

@@ -2,6 +2,28 @@
 
     All score computations failed; skipping feature selection.
 
+# case weights work
+
+    Code
+      print(weighted)
+    Message
+      
+      -- Recipe ----------------------------------------------------------------------
+      
+      -- Inputs 
+      Number of variables by role
+      outcome:       1
+      predictor:    10
+      case_weights:  1
+      
+      -- Training information 
+      Training data contained 32 data points and no incomplete rows.
+      
+      -- Operations 
+      * Feature selection via desirability functions (`cor_pearson` and
+        `cor_spearman`) on: disp, hp, drat, qsec, vs, am, gear, carb | Trained,
+        weighted
+
 # empty printing
 
     Code

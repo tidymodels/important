@@ -50,6 +50,18 @@ may affect the computations for subsequent operations.}
 
 \item{id}{A character string that is unique to this step to identify it.}
 }
+\value{
+An updated version of \code{recipe} with the new step added to the
+sequence of any existing operations. When you
+\code{\link[recipes:tidy.recipe]{tidy()}} this step, a tibble::tibble is returned
+with columns \code{terms} and \code{id}:
+
+\describe{
+\item{terms}{character, the selectors or variables selected to be removed}
+\item{id}{character, id of this step}
+}
+Once trained, additional columns are included (see Details section).
+}
 \description{
 \code{step_predictor_retain()} creates a \emph{specification} of a recipe step that
 uses a logical statement that includes one or more scoring functions to
@@ -115,15 +127,13 @@ other role). A full example is below.
 
 \subsection{Tidy method}{
 
-When you \code{\link[recipes:tidy.recipe]{tidy()}} this step, a tibble::tibble is
-returned with columns \code{terms} and \code{id}:
+For a trained recipe, the \code{tidy()} method will return a tibble with columns
+\code{terms} (the predictor names), \code{id}, and columns for the estimated scores.
+The score columns are the raw values, before being filled with "safe values"
+or transformed.
 
-\describe{
-\item{terms}{character, the selectors or variables selected to be removed}
-\item{id}{character, id of this step}
-}
-
-The underlying operation does not allow for case weights.
+There is an additional local column called \code{removed} that notes whether the
+predictor failed the filter and was removed after this step is executed.
 }
 }
 \examples{

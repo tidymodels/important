@@ -35,14 +35,14 @@ test_that("step works", {
   )
 
   expect_identical(
-    sort(res_tidy$terms[res_tidy$.removed]),
+    sort(res_tidy$terms[res_tidy$removed]),
     sort(setdiff(names(mtcars)[-1], retained$predictor))
   )
   expect_named(
     res_tidy,
     c(
       "terms",
-      ".removed",
+      "removed",
       "cor_pearson",
       "cor_spearman",
       ".d_max_cor_pearson",
@@ -78,14 +78,14 @@ test_that("EVERYTHING MUST GO", {
   )
 
   expect_identical(
-    sort(res_tidy$terms[res_tidy$.removed]),
+    sort(res_tidy$terms[res_tidy$removed]),
     sort(names(mtcars)[-1])
   )
   expect_named(
     res_tidy,
     c(
       "terms",
-      ".removed",
+      "removed",
       "cor_spearman",
       ".d_box_cor_spearman",
       ".d_overall",
@@ -119,12 +119,12 @@ test_that("wrong score type", {
   )
 
   expect_identical(
-    sort(res_tidy$terms[res_tidy$.removed]),
+    sort(res_tidy$terms[res_tidy$removed]),
     character(0)
   )
   expect_named(
     res_tidy,
-    c("terms", ".removed", "xtab_pval_fisher", "id")
+    c("terms", "removed", "xtab_pval_fisher", "id")
   )
 })
 
@@ -153,14 +153,14 @@ test_that("keep everything", {
   )
 
   expect_identical(
-    sort(res_tidy$terms[res_tidy$.removed]),
+    sort(res_tidy$terms[res_tidy$removed]),
     character(0)
   )
   expect_named(
     res_tidy,
     c(
       "terms",
-      ".removed",
+      "removed",
       "cor_spearman",
       ".d_box_cor_spearman",
       ".d_overall",

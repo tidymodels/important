@@ -56,15 +56,24 @@
 #'
 #' ## Tidy method
 #'
-#' When you [`tidy()`][recipes::tidy.recipe] this step, a tibble::tibble is
-#' returned with columns `terms` and `id`:
+#' For a trained recipe, the `tidy()` method will return a tibble with columns
+#' `terms` (the predictor names), `id`, and columns for the estimated scores.
+#' The score columns are the raw values, before being filled with "safe values"
+#' or transformed.
+#'
+#' There is an additional local column called `removed` that notes whether the
+#' predictor failed the filter and was removed after this step is executed.
+#'
+#' @return An updated version of `recipe` with the new step added to the
+#'  sequence of any existing operations. When you
+#'  [`tidy()`][recipes::tidy.recipe] this step, a tibble::tibble is returned
+#'  with columns `terms` and `id`:
 #'
 #' \describe{
 #'   \item{terms}{character, the selectors or variables selected to be removed}
 #'   \item{id}{character, id of this step}
 #' }
-#'
-#' The underlying operation does not allow for case weights.
+#' Once trained, additional columns are included (see Details section).
 #'
 #' @examples
 #' library(recipes)
@@ -160,7 +169,7 @@ prep.step_predictor_retain <- function(x, training, info = NULL, ...) {
       raw = tibble::tibble(
         outcome = character(0),
         predictor = character(0),
-        .removed = logical(0)
+        removed = logical(0)
       ),
       removals = character(0)
     )
@@ -231,7 +240,7 @@ calculate_predictor_retain <- function(
   removals <- setdiff(score_df$predictor, keepers)
 
   raw_res <- filtro::bind_scores(score_res)
-  raw_res$.removed <- raw_res$predictor %in% removals
+  raw_res$removed <- raw_res$predictor %in% removals
 
   list(
     raw = raw_res,

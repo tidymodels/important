@@ -80,20 +80,15 @@
 #'
 #' For a trained recipe, the `tidy()` method will return a tibble with columns
 #' `terms` (the predictor names), `id`, columns for the estimated scores, and
-#' the desirability results.
-#'
-#' There are two versions of the score results. The columns prefixed with
-#' `"score_1"` have been altered with their transformation (see the Details page
-#' for each score) and have had missing values filled with "safe" values to
-#' prevent them from being missing. The other set of scores lack the prefix and
-#' are the original, raw score values.
+#' the desirability results. The score columns are the raw values, before being
+#' filled with "safe values" or transformed.
 #'
 #' The desirability columns will have the same name as the scores with an
 #' additional prefix of `.d_`. The overall desirability column is called
 #' `.d_overall`.
 #'
-#' There is an additional local column called `retain` that notes whether the
-#' predictor passed the filter and is retained after this step is executed.
+#' There is an additional local column called `removed` that notes whether the
+#' predictor failed the filter and was removed after this step is executed.
 #'
 #' @return An updated version of `recipe` with the new step added to the
 #'  sequence of any existing operations. When you
@@ -148,7 +143,7 @@
 #'
 #' 	# Use the tidy() method to get the results:
 #' 	predictor_scores <- tidy(prepped, number = 1)
-#' 	mean(predictor_scores$.removed)
+#' 	mean(predictor_scores$removed)
 #' 	predictor_scores
 #'
 #' 	# --------------------------------------------------------------------------
@@ -349,12 +344,12 @@ prep.step_predictor_desirability <- function(x, training, info = NULL, ...) {
     dplyr::anti_join(score_df, keep_list[, "predictor"], by = "predictor") |>
     dplyr::pull(predictor)
 
-  score_df$.removed <- score_df$predictor %in% rm_list
+  score_df$removed <- score_df$predictor %in% rm_list
 
   score_df <- score_df |>
-    dplyr::select(outcome, predictor, .removed, dplyr::starts_with(".d_")) |>
+    dplyr::select(outcome, predictor, removed, dplyr::starts_with(".d_")) |>
     dplyr::full_join(raw_scores, by = c("outcome", "predictor")) |>
-    dplyr::relocate(.removed, .after = "predictor") |>
+    dplyr::relocate(removed, .after = "predictor") |>
     dplyr::relocate(dplyr::starts_with(".d_"), .after = dplyr::everything())
 
   step_predictor_desirability_new(
