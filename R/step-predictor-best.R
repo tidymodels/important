@@ -156,8 +156,10 @@ prep.step_predictor_best <- function(x, training, info = NULL, ...) {
     x$prop_terms <- update_prop(length(col_names), x$prop_terms)
   }
 
+  # First we check the _type_ of weight to see if it is used. Later, in
+  # `compute_score()`, we check to see if the score supports case weights.
   wts <- get_case_weights(info, training)
-  were_weights_used <- are_weights_used(wts, unsupervised = TRUE)
+  were_weights_used <- are_weights_used(wts, unsupervised = FALSE)
   if (isFALSE(were_weights_used)) {
     wts <- NULL
   }
@@ -169,7 +171,8 @@ prep.step_predictor_best <- function(x, training, info = NULL, ...) {
       score = x$score,
       prop_terms = x$prop_terms,
       outcome = outcome_name,
-      data = training[, c(outcome_name, col_names)]
+      data = training[, c(outcome_name, col_names)],
+      weights = wts
     )
   } else {
     filter_res <- list(
@@ -202,7 +205,8 @@ calculate_predictor_best <- function(
   score,
   prop_terms,
   outcome = character(0),
-  data
+  data,
+  weights
 ) {
   score_function <- paste0("score_", score)
 
@@ -212,8 +216,8 @@ calculate_predictor_best <- function(
     score_function,
     args = list(),
     form = fm,
-    data = data #,
-    #weights = wts
+    data = data,
+    weights = weights
   )
 
   # ------------------------------------------------------------------------------
@@ -266,12 +270,12 @@ print.step_predictor_best <- function(
   width = max(20, options()$width - 36),
   ...
 ) {
-	if (identical(x$score, rlang::enexpr())) {
-		title <- cli::format_inline("Feature selection on")
-	} else {
-		scores <- unique(x$score)
-		title <- cli::format_inline("Feature selection via {.code {scores}} on")
-	}
+  if (identical(x$score, rlang::enexpr())) {
+    title <- cli::format_inline("Feature selection on")
+  } else {
+    scores <- unique(x$score)
+    title <- cli::format_inline("Feature selection via {.code {scores}} on")
+  }
 
   print_step(
     x$removals,

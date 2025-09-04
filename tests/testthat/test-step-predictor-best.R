@@ -17,7 +17,7 @@ test_that("step works", {
     filtro::fill_safe_value(transform = TRUE)
   exp <- cor_pearson_res@results |>
     dplyr::slice_max(score, prop = 1 / 2, with_ties = TRUE) |>
-  	dplyr::pull(predictor)
+    dplyr::pull(predictor)
 
   expect_identical(
     sort(setdiff(names(mtcars), names(res_bake))),
@@ -25,15 +25,41 @@ test_that("step works", {
   )
 
   expect_identical(
-  	sort(res_tidy$terms[res_tidy$.removed]),
-  	sort(setdiff(names(mtcars)[-1], exp))
+    sort(res_tidy$terms[res_tidy$.removed]),
+    sort(setdiff(names(mtcars)[-1], exp))
   )
   expect_named(
-  	res_tidy,
-  	c("terms", ".removed", "score", "id")
+    res_tidy,
+    c("terms", ".removed", "score", "id")
   )
 })
 
+test_that("case weights work", {
+  unweighted <- recipe(mpg ~ ., data = mtcars) |>
+    step_predictor_best(
+      all_predictors(),
+      score = "cor_pearson",
+      prop_terms = 1 / 2
+    ) |>
+    prep()
+
+  weighted <- recipe(mpg ~ ., data = mtcars_wts) |>
+    step_predictor_best(
+      all_predictors(),
+      score = "cor_pearson",
+      prop_terms = 1 / 2
+    ) |>
+    prep()
+
+  expect_snapshot(print(weighted))
+
+  unweighted_res <- tidy(unweighted, number = 1) |>
+    dplyr::select(terms, unweighted = score)
+  weighted_res <- tidy(weighted, number = 1) |>
+    dplyr::select(terms, weighted = score)
+  both_res <- dplyr::full_join(unweighted_res, weighted_res, by = "terms")
+  expect_false(isTRUE(all.equal(both_res$weighted, both_res$unweighted)))
+})
 
 # Infrastructure ---------------------------------------------------------------
 test_that("bake method errors when needed non-standard role columns are missing", {
@@ -109,7 +135,7 @@ test_that("bad args", {
 })
 
 test_that("0 and 1 rows data work in bake method", {
-	skip("Emil: unsure if this is an intended error")
+  skip("Emil: unsure if this is an intended error")
   data <- mtcars
   rec <- recipe(~., data) |>
     step_predictor_best(all_numeric_predictors()) |>

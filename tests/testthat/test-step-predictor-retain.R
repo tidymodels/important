@@ -15,11 +15,11 @@ test_that("step works", {
     filtro::fit(mpg ~ ., data = mtcars)
 
   exp <- filtro::fill_safe_values(list(
-  	cor_pearson_res,
-  	cor_spearman_res
+    cor_pearson_res,
+    cor_spearman_res
   )) |>
-  	dplyr::filter(abs(cor_pearson) < 0.75 | abs(cor_spearman) < 0.6) |>
-  	dplyr::pull(predictor)
+    dplyr::filter(abs(cor_pearson) < 0.75 | abs(cor_spearman) < 0.6) |>
+    dplyr::pull(predictor)
 
   expect_identical(
     sort(setdiff(names(mtcars), names(res_bake))),
@@ -75,7 +75,7 @@ test_that("allows for one score", {
 
   exp <- cor_pearson_res@results |>
     dplyr::filter(abs(score) < 0.7) |>
-  	dplyr::pull(predictor)
+    dplyr::pull(predictor)
 
   expect_identical(
     sort(setdiff(names(mtcars), names(res_bake))),
@@ -85,6 +85,31 @@ test_that("allows for one score", {
     res_tidy,
     c("terms", ".removed", "cor_pearson", "id")
   )
+})
+
+test_that("case weights work", {
+  unweighted <- recipe(mpg ~ ., data = mtcars) |>
+    step_predictor_retain(
+      all_predictors(),
+      score = abs(cor_pearson) >= 0.75 & abs(cor_spearman) >= 0.6
+    ) |>
+    prep()
+
+  weighted <- recipe(mpg ~ ., data = mtcars_wts) |>
+    step_predictor_retain(
+      all_predictors(),
+      score = abs(cor_pearson) >= 0.75 & abs(cor_spearman) >= 0.6
+    ) |>
+    prep()
+
+  expect_snapshot(print(weighted))
+
+  unweighted_res <- tidy(unweighted, number = 1) |>
+    dplyr::select(terms, unweighted = cor_spearman)
+  weighted_res <- tidy(weighted, number = 1) |>
+    dplyr::select(terms, weighted = cor_spearman)
+  both_res <- dplyr::full_join(unweighted_res, weighted_res, by = "terms")
+  expect_false(isTRUE(all.equal(both_res$weighted, both_res$unweighted)))
 })
 
 # Infrastructure ---------------------------------------------------------------

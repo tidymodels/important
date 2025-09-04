@@ -138,8 +138,10 @@ prep.step_predictor_retain <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer"))
 
+  # First we check the _type_ of weight to see if it is used. Later, in
+  # `compute_score()`, we check to see if the score supports case weights.
   wts <- get_case_weights(info, training)
-  were_weights_used <- are_weights_used(wts, unsupervised = TRUE)
+  were_weights_used <- are_weights_used(wts, unsupervised = FALSE)
   if (isFALSE(were_weights_used)) {
     wts <- NULL
   }
@@ -150,7 +152,8 @@ prep.step_predictor_retain <- function(x, training, info = NULL, ...) {
     filter_res <- calculate_predictor_retain(
       xpr = x$score,
       outcome = outcome_name,
-      data = training[, c(outcome_name, col_names)]
+      data = training[, c(outcome_name, col_names)],
+      weights = wts
     )
   } else {
     filter_res <- list(
@@ -183,6 +186,7 @@ calculate_predictor_retain <- function(
   xpr,
   outcome = character(0),
   data,
+  weights,
   opts = list()
 ) {
   all_scores <- unique(all.vars(xpr))
@@ -208,7 +212,8 @@ calculate_predictor_retain <- function(
     opts,
     compute_score,
     form = fm,
-    data = data
+    data = data,
+    weights = weights
   )
   names(score_res) <- all_scores
 
@@ -223,17 +228,6 @@ calculate_predictor_retain <- function(
   # filter predictors
 
   keepers <- score_df |> dplyr::filter(!!xpr) |> dplyr::pull(predictor)
-
-  # if (length(keepers) == 0) {
-  #   first_score <- all.vars(xpr)[1]
-  #   first_score_obj <- score_res[[first_score]]
-  #
-  #   if (first_score_obj@direction == "maximize") {
-  #     keepers <- score_df$predictor[which.max(score_df[[first_score]])[1]]
-  #   } else {
-  #     keepers <- score_df$predictor[which.min(score_df[[first_score]])[1]]
-  #   }
-  # }
   removals <- setdiff(score_df$predictor, keepers)
 
   raw_res <- filtro::bind_scores(score_res)
