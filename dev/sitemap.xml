@@ -10,5 +10,9 @@
 <url><loc>https://important.tidymodels.org/dev/reference/important-package.html</loc></url>
 <url><loc>https://important.tidymodels.org/dev/reference/index.html</loc></url>
 <url><loc>https://important.tidymodels.org/dev/reference/reexports.html</loc></url>
+<url><loc>https://important.tidymodels.org/dev/reference/required_pkgs.important.html</loc></url>
+<url><loc>https://important.tidymodels.org/dev/reference/step_predictor_best.html</loc></url>
+<url><loc>https://important.tidymodels.org/dev/reference/step_predictor_desirability.html</loc></url>
+<url><loc>https://important.tidymodels.org/dev/reference/step_predictor_retain.html</loc></url>
 </urlset>
 

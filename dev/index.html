@@ -62,6 +62,16 @@
 <li>The computations that loop across permutation iterations and predictors columns are easily parallelized.</li>
 <li>The results are returned in a tidy format.</li>
 </ul>
+<p>There are also recipe steps for supervised feature selection:</p>
+<ul>
+<li>
+<code>step_predictors_retain()</code> can filter the predictors using a single conditional statement (e.g., absolute correlation with the outcome &gt; 0.75, etc).</li>
+<li>
+<code>step_predictors_best()</code> can retain the most important predictors for the outcome using a single scoring function.</li>
+<li>
+<code>step_predictors_desirability()</code> retains the most important predictors for the outcome using multiple scoring functions, blended using desirability functions.</li>
+</ul>
+<p>The latter two steps can be tuned over the proportion of predictors to be retained.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -77,7 +87,7 @@
 <p>The main reason for making important is censored regression models. tidymodels released tools for fitting and qualifying models that have censored outcomes. This included some dynamic performance metrics that were evaluated at different time points. This was a substantial change for us, and it would have been even more challenging to add to other packages.</p>
 </div>
 <div class="section level2">
-<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+<h2 id="variable-importance-example">Variable importance Example<a class="anchor" aria-label="anchor" href="#variable-importance-example"></a>
 </h2>
 <p>Let’s look at an analysis that models <a href="https://aml4td.org/chapters/whole-game.html#sec-delivery-times" class="external-link">food delivery times</a>. The outcome is the time between an order being placed and the delivery (all data are complete - there is no censoring). We model this in terms of the order day/time, the distance to the restaurant, and which items are contained in the order. Exploratory data analysis shows several nonlinear trends in the data and some interactions between these trends.</p>
 <p>We’ll load the tidymodels and important packages to get started.</p>
@@ -174,6 +184,72 @@
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">lm_orig_imp</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-original-plot-1.png" width="100%"></p>
+</div>
+<div class="section level2">
+<h2 id="supervised-feature-selection-example">Supervised Feature Selection Example<a class="anchor" aria-label="anchor" href="#supervised-feature-selection-example"></a>
+</h2>
+<p>Using the same dataset, let’s illustrate the most common tool for filtering predictors: using random forest importance scores.</p>
+<p>important can use any of the “scoring functions” from the <a href="https://filtro.tidymodels.org/" class="external-link">filtro</a> package. You can supply one, and the proportion of the predictors to retain:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">491</span><span class="op">)</span></span>
+<span><span class="va">selection_rec</span> <span class="op">&lt;-</span> </span>
+<span>    <span class="fu">recipe</span><span class="op">(</span><span class="va">time_to_delivery</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">delivery_train</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="reference/step_predictor_best.html">step_predictor_best</a></span><span class="op">(</span><span class="fu">all_predictors</span><span class="op">(</span><span class="op">)</span>, score <span class="op">=</span> <span class="st">"imp_rf"</span>, prop_terms <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">4</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu">step_dummy</span><span class="op">(</span><span class="fu">all_factor_predictors</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu">step_zv</span><span class="op">(</span><span class="fu">all_predictors</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu">step_spline_natural</span><span class="op">(</span><span class="fu">any_of</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hour"</span>, <span class="st">"distance"</span><span class="op">)</span><span class="op">)</span>, deg_free <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu">step_interact</span><span class="op">(</span><span class="op">~</span> <span class="fu">starts_with</span><span class="op">(</span><span class="st">"hour_"</span><span class="op">)</span><span class="op">:</span><span class="fu">starts_with</span><span class="op">(</span><span class="st">"day_"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu">prep</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">selection_rec</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Recipe ──────────────────────────────────────────────────────────────────────</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Inputs</span></span>
+<span><span class="co">#&gt; Number of variables by role</span></span>
+<span><span class="co">#&gt; outcome:    1</span></span>
+<span><span class="co">#&gt; predictor: 30</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Training information</span></span>
+<span><span class="co">#&gt; Training data contained 6004 data points and no incomplete rows.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Operations</span></span>
+<span><span class="co">#&gt; • Feature selection via `imp_rf` on: item_03 item_04, ... | Trained</span></span>
+<span><span class="co">#&gt; • Dummy variables from: day | Trained</span></span>
+<span><span class="co">#&gt; • Zero variance filter removed: &lt;none&gt; | Trained</span></span>
+<span><span class="co">#&gt; • Natural spline expansion: hour distance | Trained</span></span>
+<span><span class="co">#&gt; • Interactions with: hour_01:day_Tue hour_01:day_Wed, ... | Trained</span></span></code></pre></div>
+<p>A list of possible scores is contained in the help page for the recipe steps.</p>
+<p>Note that we changed selectors in <code>step_spline_natural()</code> to use <code>any_of()</code> instead of specific names. Any step downstream of any filtering steps should be generalized so that there is no failure if the columns were removed. Using <code>any_of()</code> selects these two columns <em>if they still remain in the data</em>.</p>
+<p>Which were removed?</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">selection_res</span> <span class="op">&lt;-</span> </span>
+<span>    <span class="fu">tidy</span><span class="op">(</span><span class="va">selection_rec</span>, number <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu">arrange</span><span class="op">(</span><span class="fu">desc</span><span class="op">(</span><span class="va">score</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">selection_res</span></span>
+<span><span class="co">#&gt; # A tibble: 30 × 4</span></span>
+<span><span class="co">#&gt;    terms    removed   score id                  </span></span>
+<span><span class="co">#&gt;    &lt;chr&gt;    &lt;lgl&gt;     &lt;dbl&gt; &lt;chr&gt;               </span></span>
+<span><span class="co">#&gt;  1 hour     FALSE   48.5    predictor_best_rCIMa</span></span>
+<span><span class="co">#&gt;  2 day      FALSE   13.5    predictor_best_rCIMa</span></span>
+<span><span class="co">#&gt;  3 distance FALSE   13.3    predictor_best_rCIMa</span></span>
+<span><span class="co">#&gt;  4 item_10  FALSE    1.18   predictor_best_rCIMa</span></span>
+<span><span class="co">#&gt;  5 item_01  FALSE    1.01   predictor_best_rCIMa</span></span>
+<span><span class="co">#&gt;  6 item_24  FALSE    0.160  predictor_best_rCIMa</span></span>
+<span><span class="co">#&gt;  7 item_02  FALSE    0.0676 predictor_best_rCIMa</span></span>
+<span><span class="co">#&gt;  8 item_26  TRUE     0.0666 predictor_best_rCIMa</span></span>
+<span><span class="co">#&gt;  9 item_03  TRUE     0.0593 predictor_best_rCIMa</span></span>
+<span><span class="co">#&gt; 10 item_22  TRUE     0.0565 predictor_best_rCIMa</span></span>
+<span><span class="co">#&gt; # ℹ 20 more rows</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">selection_res</span><span class="op">$</span><span class="va">removed</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.7666667</span></span></code></pre></div>
+<p>This example shows the basic usage of the recipe. In practice, we would probably do things differently:</p>
+<ul>
+<li>This step would be included in a workflow so that it is coupled to a model.</li>
+<li>It would be a good idea to optimize how much selection is done by setting <code>prop_terms = tune()</code> in the step and using one of the tuning functions to find a good proportion.</li>
+</ul>
+<p><em>Inappropriate</em> use of these selection steps occurs when it is used before the data are split or outside of a resampling step.</p>
 </div>
 <div class="section level2">
 <h2 id="code-of-conduct">Code of Conduct<a class="anchor" aria-label="anchor" href="#code-of-conduct"></a>
