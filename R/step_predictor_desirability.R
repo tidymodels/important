@@ -207,12 +207,16 @@ step_predictor_desirability <- function(
   skip = FALSE,
   id = rand_id("predictor_desirability")
 ) {
-  if (!inherits(score, "desirability2::desirability_set")) {
-    cli::cli_abort(
-      "Please use the {.fn desirability} function in the {.pkg desirability2}
+  S7::check_is_S7(score)
+  if (getRversion() >= "4.3.0") {
+    if (!inherits(score, "desirability2::desirability_set")) {
+      cli::cli_abort(
+        "Please use the {.fn desirability} function in the {.pkg desirability2}
 		   package to create an object to pass to {.arg score}."
-    )
+      )
+    }
   }
+
   add_step(
     recipe,
     step_predictor_desirability_new(
