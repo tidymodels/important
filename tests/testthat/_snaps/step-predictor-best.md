@@ -63,19 +63,30 @@
       
       -- Inputs 
       Number of variables by role
-      predictor: 11
+      outcome:    1
+      predictor: 10
       
       -- Operations 
-      * Feature selection on: all_predictors()
+      * Feature selection via `cor_pearson` on: all_predictors()
 
 ---
 
     Code
       prep(rec)
-    Condition
-      Error in `step_predictor_best()`:
-      Caused by error in `pull_outcome_column_name()`:
-      ! One column should have a role of "outcome".
+    Message
+      
+      -- Recipe ----------------------------------------------------------------------
+      
+      -- Inputs 
+      Number of variables by role
+      outcome:    1
+      predictor: 10
+      
+      -- Training information 
+      Training data contained 32 data points and no incomplete rows.
+      
+      -- Operations 
+      * Feature selection via `cor_pearson` on: qsec, vs, am, gear, carb | Trained
 
 # bad args
 

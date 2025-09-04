@@ -162,11 +162,11 @@ test_that("empty selection tidy method works", {
 
 test_that("printing", {
   set.seed(1)
-  rec <- recipe(~., data = mtcars) |>
-    step_predictor_best(all_predictors())
+  rec <- recipe(mpg ~ ., data = mtcars) |>
+    step_predictor_best(all_predictors(), score = "cor_pearson")
 
   expect_snapshot(print(rec))
-  expect_snapshot(prep(rec), error = TRUE) # Emil: is this intended?
+  expect_snapshot(prep(rec))
 })
 
 test_that("tunable is setup to work with extract_parameter_set_dials", {
