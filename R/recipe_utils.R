@@ -77,10 +77,14 @@ update_prop <- function(num_cols, prop) {
 
 tidy_filtro_rec <- function(x, ...) {
   if (is_trained(x)) {
-    res <-
-      x$results |>
-      dplyr::select(-outcome, terms = predictor) |>
-      dplyr::relocate(dplyr::any_of(".removed"), .after = c(terms))
+  	if (is.null(x$results)) {
+  		res <- tibble::tibble(terms = character(), id = character())
+  	} else {
+  		res <-
+  			x$results |>
+  			dplyr::select(-outcome, terms = predictor) |>
+  			dplyr::relocate(dplyr::any_of(".removed"), .after = c(terms))
+  	}
   } else {
     term_names <- sel2char(x$terms)
     res <- tibble::tibble(terms = term_names)

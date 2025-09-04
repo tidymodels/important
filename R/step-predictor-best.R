@@ -266,10 +266,13 @@ print.step_predictor_best <- function(
   width = max(20, options()$width - 36),
   ...
 ) {
-  scores <- unique(x$score)
-  title <- cli::format_inline(
-    "Feature selection via {.code {scores}} on"
-  )
+	if (identical(x$score, rlang::enexpr())) {
+		title <- cli::format_inline("Feature selection on")
+	} else {
+		scores <- unique(x$score)
+		title <- cli::format_inline("Feature selection via {.code {scores}} on")
+	}
+
   print_step(
     x$removals,
     x$terms,
