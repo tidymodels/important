@@ -59,6 +59,34 @@ test_that("EVERYTHING MUST GO", {
   )
 })
 
+test_that("keep everything", {
+  set.seed(1)
+  rec <- recipe(mpg ~ ., data = mtcars) |>
+    step_predictor_retain(
+      all_predictors(),
+      score = abs(cor_pearson) >= -1 & abs(cor_spearman) >= -1
+    )
+
+  prepped <- prep(rec)
+
+  res_bake <- bake(prepped, mtcars)
+  res_tidy <- tidy(prepped, 1)
+
+  expect_identical(
+    sort(names(res_bake)),
+    sort(names(mtcars))
+  )
+
+  expect_identical(
+    sort(res_tidy$terms[res_tidy$.removed]),
+    character(0)
+  )
+  expect_named(
+    res_tidy,
+    c("terms", ".removed", "cor_pearson", "cor_spearman", "id")
+  )
+})
+
 test_that("allows for one score", {
   rec <- recipe(mpg ~ ., data = mtcars) |>
     step_predictor_retain(

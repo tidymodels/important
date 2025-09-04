@@ -271,9 +271,11 @@ prep.step_predictor_desirability <- function(x, training, info = NULL, ...) {
   rlang::check_installed("desirability2")
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer", "factor"))
+
+  bottom <- ifelse(x$update_prop, .Machine$double.eps, 0.0)
   check_number_decimal(
     x$prop_terms,
-    min = .Machine$double.eps,
+    min = bottom,
     max = 1,
     arg = "prop_terms"
   )
@@ -323,37 +325,37 @@ prep.step_predictor_desirability <- function(x, training, info = NULL, ...) {
   raw_scores <- filtro::bind_scores(score_objs)
 
   score_df <-
-  	score_objs |>
-  	filtro::fill_safe_values(transform = TRUE)
+    score_objs |>
+    filtro::fill_safe_values(transform = TRUE)
 
   if (all_scores_missing(raw_scores)) {
-  	cli::cli_warn("All score computations failed; skipping feature selection.")
-  	keep_list <- score_df
+    cli::cli_warn("All score computations failed; skipping feature selection.")
+    keep_list <- score_df
   } else {
-  	# make desirability expression/eval quosure
-  	score_df <- desirability2::make_desirability_cols(x$score, score_df)
+    # make desirability expression/eval quosure
+    score_df <- desirability2::make_desirability_cols(x$score, score_df)
 
-  	bad_news <- purrr::map_lgl(score_df$.d_overall, ~ identical(.x, 0.0))
-  	if (all(bad_news)) {
-  		keep_list <- score_df[0,]
-  	} else {
-  		keep_list <-
-  			score_df |>
-  			dplyr::slice_max(.d_overall, prop = x$prop_terms, with_ties = TRUE)
-  	}
+    bad_news <- purrr::map_lgl(score_df$.d_overall, ~ identical(.x, 0.0))
+    if (all(bad_news)) {
+      keep_list <- score_df[0, ]
+    } else {
+      keep_list <-
+        score_df |>
+        dplyr::slice_max(.d_overall, prop = x$prop_terms, with_ties = TRUE)
+    }
   }
 
   rm_list <-
     dplyr::anti_join(score_df, keep_list[, "predictor"], by = "predictor") |>
-  	dplyr::pull(predictor)
+    dplyr::pull(predictor)
 
   score_df$.removed <- score_df$predictor %in% rm_list
 
   score_df <- score_df |>
-  	dplyr::select(outcome, predictor, .removed, dplyr::starts_with(".d_")) |>
+    dplyr::select(outcome, predictor, .removed, dplyr::starts_with(".d_")) |>
     dplyr::full_join(raw_scores, by = c("outcome", "predictor")) |>
     dplyr::relocate(.removed, .after = "predictor") |>
-  	dplyr::relocate(dplyr::starts_with(".d_"), .after = dplyr::everything())
+    dplyr::relocate(dplyr::starts_with(".d_"), .after = dplyr::everything())
 
   step_predictor_desirability_new(
     terms = x$terms,

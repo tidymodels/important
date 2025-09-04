@@ -145,9 +145,11 @@ step_predictor_best_new <-
 prep.step_predictor_best <- function(x, training, info = NULL, ...) {
   col_names <- recipes_eval_select(x$terms, training, info)
   check_type(training[, col_names], types = c("double", "integer", "factor"))
+
+  bottom <- ifelse(x$update_prop, .Machine$double.eps, 0.0)
   check_number_decimal(
     x$prop_terms,
-    min = .Machine$double.eps,
+    min = bottom,
     max = 1,
     arg = "prop_terms"
   )
@@ -235,17 +237,11 @@ calculate_predictor_best <- function(
   if (score_res@direction == "maximize") {
     keepers <- score_df |>
       dplyr::slice_max(score, prop = prop_terms, with_ties = TRUE)
-    fallback_col <- score_df$predictor[which.max(score_df$score)[1]]
   } else {
     keepers <- score_df |>
       dplyr::slice_min(score, prop = prop_terms, with_ties = TRUE)
-    fallback_col <- score_df$predictor[which.min(score_df$score)[1]]
   }
   keepers <- keepers |> dplyr::pull(predictor)
-
-  if (length(keepers) == 0) {
-    keepers <- score_df$predictors[score_df$predictors != fallback_col]
-  }
 
   removals <- setdiff(score_df$predictor, keepers)
 
