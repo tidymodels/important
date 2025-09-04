@@ -17,15 +17,19 @@ URL: https://important.tidymodels.org/,
     https://github.com/tidymodels/important
 BugReports: https://github.com/tidymodels/important/issues
 Depends: 
-    R (>= 4.1.0)
+    R (>= 4.1.0),
+    recipes (>= 1.1.0)
 Imports: 
     cli,
+    desirability2 (>= 0.2.0),
     dplyr,
+    filtro (>= 0.2.0),
     generics,
     ggplot2,
     hardhat (>= 1.4.1),
     purrr,
-    rlang,
+    rlang (>= 1.1.0),
+    S7,
     tibble,
     tidyr,
     tune,
@@ -39,7 +43,7 @@ Suggests:
     mirai,
     modeldata,
     parsnip,
-    recipes,
+    ranger, 
     spelling,
     survival,
     testthat (>= 3.0.0),

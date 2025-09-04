@@ -1,0 +1,34 @@
+```{r}
+#| include: false
+library(filtro)
+scores <- ls(pattern = "^score_", envir = asNamespace("filtro"))
+scores <- sort(scores)
+no_prefix <- gsub("^score_", "", scores)
+
+f_ver <- packageDescription("filtro")$Version
+```
+
+## Scoring Functions
+
+As of version `r f_ver` of the \pkg{filtro} package, the following score functions are available: 
+
+\itemize{
+
+```{r}
+#| echo: FALSE
+#| results: asis
+
+cat(
+	paste0(
+  " \\item \\code{",
+  no_prefix,
+  "} (\\code{\\link[filtro:score_",
+  no_prefix,
+  "]{documentation}})",
+  collapse = "\n"
+)
+)
+cat("\n\n")
+```
+
+}

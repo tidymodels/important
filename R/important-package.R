@@ -2,8 +2,11 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @importFrom stats sd predict
-#' @importFrom hardhat extract_fit_parsnip extract_postprocessor
+#' @import recipes
+#' @import rlang
+#' @importFrom stats sd predict as.formula
+#' @importFrom hardhat extract_fit_parsnip
+#' @importFrom S7 check_is_S7
 
 #' @importFrom ggplot2 autoplot
 #' @export
@@ -27,14 +30,19 @@ utils::globalVariables(
     "permuted",
     "predictor",
     "ranking",
-    "std_err"
+    "std_err",
+    "score",
+    ".d_overall",
+    "outcome",
+    "score_objs",
+    "removed",
+    "terms"
   )
 )
-## usethis namespace: end
+
+# enable usage of <S7_object>@name in package code
+#' @rawNamespace if (getRversion() < "4.3.0") importFrom("S7", "@")
 NULL
 
-## From workflows
-# nocov start
-has_postprocessor <- function(x) has_postprocessor_tailor(x)
-has_postprocessor_tailor <- function(x) "tailor" %in% names(x$post$actions)
-# nocov end
+## usethis namespace: end
+NULL

@@ -26,7 +26,14 @@ The important package has a succinct interface for obtaining estimates of predic
 - Importance can be calculated for either the original columns or at the level of any derived model terms created during feature engineering. 
 - The computations that loop across permutation iterations and predictors columns are easily parallelized. 
 - The results are returned in a tidy format. 
- 
+
+There are also recipe steps for supervised feature selection: 
+
+- `step_predictors_retain()` can filter the predictors using a single conditional statement (e.g., absolute correlation with the outcome > 0.75, etc). 
+- `step_predictors_best()` can retain the most important predictors for the outcome using a single scoring function. 
+- `step_predictors_desirability()` retains the most important predictors for the outcome using multiple scoring functions, blended using desirability functions.  
+
+The latter two steps can be tuned over the proportion of predictors to be retained.  
 
 ## Installation
 
@@ -42,7 +49,7 @@ pak::pak("tidymodels/important")
 
 The main reason for making important is censored regression models. tidymodels released tools for fitting and qualifying models that have censored outcomes. This included some dynamic performance metrics that were evaluated at different time points. This was a substantial change for us, and it would have been even more challenging to add to other packages. 
 
-## Example
+## Variable importance Example
 
 Let's look at an analysis that models [food delivery times](https://aml4td.org/chapters/whole-game.html#sec-delivery-times). The outcome is the time between an order being placed and the delivery (all data are complete - there is no censoring). We model this in terms of the order day/time, the distance to the restaurant, and which items are contained in the order. Exploratory data analysis shows several nonlinear trends in the data and some interactions between these trends.  
 
@@ -152,6 +159,49 @@ lm_orig_imp |>
 autoplot(lm_orig_imp)
 ```
 
+## Supervised Feature Selection Example
+
+Using the same dataset, let's illustrate the most common tool for filtering predictors: using random forest importance scores. 
+
+important can use any of the "scoring functions" from the [filtro](https://filtro.tidymodels.org/) package. You can supply one, and the proportion of the predictors  to retain: 
+
+```{r}
+#| label: select-top
+set.seed(491)
+selection_rec <- 
+	recipe(time_to_delivery ~ ., data = delivery_train) |> 
+	step_predictor_best(all_predictors(), score = "imp_rf", prop_terms = 1/4) |> 
+	step_dummy(all_factor_predictors()) |> 
+	step_zv(all_predictors()) |> 
+	step_spline_natural(any_of(c("hour", "distance")), deg_free = 10) |> 
+	step_interact(~ starts_with("hour_"):starts_with("day_")) |> 
+	prep()
+selection_rec
+```
+
+A list of possible scores is contained in the help page for the recipe steps. 
+
+Note that we changed selectors in `step_spline_natural()` to use `any_of()` instead of specific names. Any step downstream of any filtering steps should be generalized so that there is no failure if the columns were removed. Using `any_of()` selects these two columns _if they still remain in the data_.  
+
+Which were removed? 
+
+```{r}
+#| label: tidy-filter
+selection_res <- 
+	tidy(selection_rec, number = 1) |> 
+	arrange(desc(score))
+
+selection_res
+
+mean(selection_res$removed)
+```
+
+This example shows the basic usage of the recipe. In practice, we would probably do things differently: 
+
+ - This step would be included in a workflow so that it is coupled to a model. 
+ - It would be a good idea to optimize how much selection is done by setting `prop_terms = tune()` in the step and using one of the tuning functions to find a good proportion. 
+ 
+*Inappropriate* use of these selection steps occurs when it is used before the data are split or outside of a resampling step.  
 
 ## Code of Conduct
   
