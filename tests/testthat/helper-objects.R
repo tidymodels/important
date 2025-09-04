@@ -100,3 +100,9 @@ POTATO <- function(x) {
 	rlang::enquo(x)
 }
 
+# ------------------------------------------------------------------------------
+
+goals <-
+	desirability2::desirability(
+		maximize(score_cor_pearson),
+		constrain(score_cor_spearman, low = 0.7, high = 1))

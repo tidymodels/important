@@ -1,5 +1,117 @@
+test_that("step works", {
+	set.seed(1)
+	rec <- recipe(mpg ~., data = mtcars) |>
+		step_predictor_desirability(
+			all_predictors(),
+			score = goals,
+			prop_terms = 0.2
+		)
+
+	prepped <- prep(rec)
+
+	res_bake <- bake(prepped, mtcars)
+	# res_tidy <- tidy(prepped, 1)
+
+	score_res <-
+		list(
+			filtro::score_cor_pearson  |> filtro::fit(mpg ~ ., data = mtcars),
+			filtro::score_cor_spearman |> filtro::fit(mpg ~ ., data = mtcars)
+		) |>
+		filtro::fill_safe_values(transform = TRUE) |>
+		dplyr::mutate(
+			d_pearson = desirability2::d_max(cor_pearson, use_data = TRUE),
+			d_spearman =  desirability2::d_box(cor_spearman, low = 0.7, high = 1.0),
+			d_overall = desirability2::d_overall(dplyr::across(dplyr::starts_with("d_")))
+		)
+
+	retained <- score_res |> dplyr::slice_max(d_overall, prop = 0.2, with_ties = TRUE)
+
+	expect_identical(
+		sort(setdiff(names(mtcars), names(res_bake))),
+		sort(setdiff(names(mtcars)[-1], retained$predictor))
+	)
+
+	# expect_identical(
+	# 	sort(res_tidy$terms[res_tidy$.removed]),
+	# 	sort(setdiff(names(mtcars)[-1], exp))
+	# )
+	# expect_named(
+	# 	res_tidy,
+	# 	c("terms", ".removed", "score", "id")
+	# )
+})
+
+test_that("EVERYTHING MUST GO", {
+	bad_goals <-
+		desirability2::desirability(
+			constrain(score_cor_spearman, low = 2, high = 3))
+
+	set.seed(1)
+	rec <- recipe(mpg ~., data = mtcars) |>
+		step_predictor_desirability(
+			all_predictors(),
+			score = bad_goals,
+			prop_terms = 0.2
+		)
+
+	prepped <- prep(rec)
+
+	res_bake <- bake(prepped, mtcars)
+	res_tidy <- tidy(prepped, 1)
+
+	expect_identical(
+		names(res_bake),
+		"mpg"
+	)
+
+	expect_identical(
+		sort(res_tidy$terms[res_tidy$.removed]),
+		sort(names(mtcars)[-1])
+	)
+	# TODO max fix
+	# expect_named(
+	# 	res_tidy,
+	# 	c("terms", ".removed", "score", "id")
+	# )
+
+})
+
+test_that("keep everything", {
+	easy_goals <-
+		desirability2::desirability(
+			constrain(score_cor_spearman, low = -2, high = 3))
+
+	set.seed(1)
+	rec <- recipe(mpg ~., data = mtcars) |>
+		step_predictor_desirability(
+			all_predictors(),
+			score = easy_goals,
+			prop_terms = 0.2
+		)
+
+	prepped <- prep(rec)
+
+	res_bake <- bake(prepped, mtcars)
+	res_tidy <- tidy(prepped, 1)
+
+	expect_identical(
+		sort(names(res_bake)),
+		sort(names(mtcars))
+	)
+
+	expect_identical(
+		sort(res_tidy$terms[res_tidy$.removed]),
+		character(0)
+	)
+	# TODO max fix
+	# expect_named(
+	# 	res_tidy,
+	# 	c("terms", ".removed", "score", "id")
+	# )
+
+})
+
 # Infrastructure ---------------------------------------------------------------
-skip("not yet!")
 
 test_that("bake method errors when needed non-standard role columns are missing", {
   # Here for completeness
@@ -9,65 +121,73 @@ test_that("bake method errors when needed non-standard role columns are missing"
 
 test_that("empty printing", {
   rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_predictor_desirability(rec)
-
-  expect_snapshot(rec)
-
-  rec <- prep(rec, mtcars)
-
-  expect_snapshot(rec)
+  expect_snapshot(step_predictor_desirability(rec), error = TRUE)
+  # TODO should this error?
+  # expect_snapshot(rec)
+  #
+  # rec <- prep(rec, mtcars)
+  #
+  # expect_snapshot(rec)
 })
 
 test_that("empty selection prep/bake is a no-op", {
   rec1 <- recipe(mpg ~ ., mtcars)
-  rec2 <- step_predictor_desirability(rec1)
-
-  rec1 <- prep(rec1, mtcars)
-  rec2 <- prep(rec2, mtcars)
-
-  baked1 <- bake(rec1, mtcars)
-  baked2 <- bake(rec2, mtcars)
-
-  expect_identical(baked1, baked2)
+  # TODO should this error?
+  # rec2 <- step_predictor_desirability(rec1)
+  #
+  # rec1 <- prep(rec1, mtcars)
+  # rec2 <- prep(rec2, mtcars)
+  #
+  # baked1 <- bake(rec1, mtcars)
+  # baked2 <- bake(rec2, mtcars)
+  #
+  # expect_identical(baked1, baked2)
 })
 
 test_that("empty selection tidy method works", {
   rec <- recipe(mpg ~ ., mtcars)
-  rec <- step_predictor_desirability(rec)
-
-  expect <- tibble(terms = character(), id = character())
-
-  expect_identical(tidy(rec, number = 1), expect)
-
-  rec <- prep(rec, mtcars)
-
-  expect_identical(tidy(rec, number = 1), expect)
+  # TODO should this error?
+  # rec <- step_predictor_desirability(rec)
+  #
+  # expect <- tibble(terms = character(), id = character())
+  #
+  # expect_identical(tidy(rec, number = 1), expect)
+  #
+  # rec <- prep(rec, mtcars)
+  #
+  # expect_identical(tidy(rec, number = 1), expect)
 })
 
 test_that("printing", {
   set.seed(1)
-  rec <- recipe(~., data = mtcars) |>
-    step_predictor_desirability(all_predictors())
+	rec <- recipe(mpg ~., data = mtcars) |>
+		step_predictor_desirability(
+			all_predictors(),
+			score = goals
+		)
 
   expect_snapshot(print(rec))
   expect_snapshot(prep(rec))
 })
 
 test_that("tunable is setup to work with extract_parameter_set_dials", {
-  skip_if_not_installed("dials")
-  rec <- recipe(~., data = mtcars) |>
-    step_predictor_desirability(all_predictors(), threshold = hardhat::tune())
+	skip_if_not_installed("dials")
 
-  params <- extract_parameter_set_dials(rec)
+	rec <- recipe( ~ ., data = mtcars) |>
+		step_predictor_desirability(all_predictors(),
+																score = goals,
+																prop_terms = hardhat::tune())
 
-  expect_s3_class(params, "parameters")
-  expect_identical(nrow(params), 1L)
+	params <- extract_parameter_set_dials(rec)
+
+	expect_s3_class(params, "parameters")
+	expect_identical(nrow(params), 1L)
 })
 
 test_that("bad args", {
   expect_snapshot(
     recipe(mpg ~ ., mtcars) |>
-      step_predictor_desirability(all_predictors(), threshold = 2) |>
+      step_predictor_desirability(all_predictors(), score = goals, prop_terms = 2) |>
       prep(),
     error = TRUE
   )
@@ -75,8 +195,8 @@ test_that("bad args", {
 
 test_that("0 and 1 rows data work in bake method", {
   data <- mtcars
-  rec <- recipe(~., data) |>
-    step_predictor_desirability(all_numeric_predictors()) |>
+  rec <- recipe(mpg ~., data) |>
+    step_predictor_desirability(all_numeric_predictors(), score = goals,) |>
     prep()
 
   expect_identical(

@@ -329,9 +329,15 @@ prep.step_predictor_desirability <- function(x, training, info = NULL, ...) {
   # make desirability expression/eval quosure
   score_df <- desirability2::make_desirability_cols(x$score, score_objs)
 
-  keep_list <-
-    score_df |>
-    dplyr::slice_max(.d_overall, prop = x$prop_terms, with_ties = TRUE)
+  bad_news <- purrr::map_lgl(score_df$.d_overall, ~ identical(.x, 0.0))
+  if (all(bad_news)) {
+  	keep_list <- score_df[0,]
+  } else {
+  	keep_list <-
+  		score_df |>
+  		dplyr::slice_max(.d_overall, prop = x$prop_terms, with_ties = TRUE)
+  }
+
   rm_list <-
     dplyr::anti_join(score_df, keep_list[, "predictor"], by = "predictor") |>
     purrr::pluck("predictor")
