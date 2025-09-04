@@ -165,13 +165,11 @@ prep.step_predictor_best <- function(x, training, info = NULL, ...) {
   outcome_name <- pull_outcome_column_name(info)
 
   if (length(col_names) > 1) {
-    filter_res <- list(
-      raw = tibble::tibble(
-        outcome = character(0),
-        predictor = character(0),
-        score = double(0)
-      ),
-      removals = character(0)
+    filter_res <- calculate_predictor_best(
+      score = x$score,
+      prop_terms = x$prop_terms,
+      outcome = outcome_name,
+      data = training[, c(outcome_name, col_names)]
     )
   } else {
     filter_res <- list(
