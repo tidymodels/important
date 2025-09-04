@@ -205,10 +205,9 @@ test_that("bad args", {
 })
 
 test_that("0 and 1 rows data work in bake method", {
-  skip("Emil: unsure if this is an intended error")
   data <- mtcars
-  rec <- recipe(~., data) |>
-    step_predictor_best(all_numeric_predictors()) |>
+  rec <- recipe(mpg ~ ., data) |>
+    step_predictor_best(all_numeric_predictors(), score = "cor_pearson") |>
     prep()
 
   expect_identical(
