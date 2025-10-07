@@ -1,6 +1,6 @@
 Package: important
 Title: Supervised Feature Selection
-Version: 0.2.0.9000
+Version: 0.2.1
 Authors@R: c(
     person("Max", "Kuhn", , "max@posit.co", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-2402-136X")),
@@ -54,4 +54,4 @@ Config/usethis/last-upkeep: 2025-06-09
 Encoding: UTF-8
 Language: en-US
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3

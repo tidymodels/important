@@ -29,12 +29,9 @@ test_that("autoplot - classification", {
   p1 <- autoplot(res_orig)
   expect_s3_class(p1, "ggplot")
   expect_equal(
-    p1$labels,
-    list(
-      y = NULL,
-      x = "Permutation Importance Score",
-      xintercept = "xintercept"
-    )
+  	ggplot2::get_labs(p1),
+    list(x.sec = NULL, x = "Permutation Importance Score", y = NULL,
+    		 y.sec = NULL, xintercept = "xintercept", alt = "")
   )
   expect_equal(names(p1$mapping), "y")
   expect_equal(
@@ -60,14 +57,10 @@ test_that("autoplot - classification", {
     3L
   )
   expect_equal(
-    p2$labels,
-    list(
-      y = NULL,
-      x = "Permutation Importance Score",
-      xintercept = "xintercept",
-      xmin = "mean - std_errs * std_err",
-      xmax = "mean + std_errs * std_err"
-    )
+  	ggplot2::get_labs(p2),
+  	list(x.sec = NULL, x = "Permutation Importance Score", y = NULL,
+  			 y.sec = NULL, xintercept = "xintercept", xmin = "mean - std_errs * std_err",
+  			 xmax = "mean + std_errs * std_err", alt = "")
   )
 
   expect_equal(length(p2$layers), 3)
@@ -112,12 +105,9 @@ test_that("autoplot - classification", {
   p3 <- autoplot(res_derv, metric = "brier_class")
   expect_s3_class(p3, "ggplot")
   expect_equal(
-    p3$labels,
-    list(
-      y = NULL,
-      x = "Permutation Importance Score",
-      xintercept = "xintercept"
-    )
+  	ggplot2::get_labs(p3),
+    list(x.sec = NULL, x = "Permutation Importance Score", y = NULL,
+    		 y.sec = NULL, xintercept = "xintercept", alt = "")
   )
   expect_equal(length(p3$layers), 2)
   expect_equal(names(p3$mapping), "y")
