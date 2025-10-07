@@ -1,4 +1,6 @@
-# important (development version)
+# important 0.2.1
+
+Required changes for new ggplot2 release. 
 
 # important 0.2.0
 
@@ -13,5 +15,3 @@ See their individual help pages for more information.
 # important 0.0.1
 
 * Initial CRAN submission.
-
-
