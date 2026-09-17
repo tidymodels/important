@@ -56,6 +56,14 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
+      # gower's macOS binary can be linked against an incompatible OpenMP
+      # runtime, causing "symbol not found ... ___kmpc_barrier" at load time.
+      # Reinstalling it from source avoids the mismatch.
+      - name: Reinstall gower from source on macOS
+        if: runner.os == 'macOS'
+        run: Rscript -e 'install.packages("gower", type = "source", repos = "https://cloud.r-project.org")'
+        shell: bash
+
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
